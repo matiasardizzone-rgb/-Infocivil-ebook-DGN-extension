@@ -2,7 +2,7 @@ import * as db from '../lib/db.js';
 import { registrar, instalarCaptura } from '../lib/registro.js';
 import { generarPdfUnificado, generarIndiceHipervinculado } from '../lib/unificador.js';
 import { iniciarCanalExterno } from './externo.js';
-import { iniciarConsultas, iniciarAperturaVinculados } from './consulta.js';
+import { iniciarConsultas, iniciarAperturaVinculados, asegurarHistoricas, abrirDesdeRelacionados, pedir } from './consulta.js';
 import { iniciarRelacionados } from './relacionados.js';
 import { PDFDocument } from '../../vendor/pdf-lib.esm.js';
 
@@ -311,7 +311,9 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     // { cid } — abre (o reusa) la pestaña del expediente, escanea liviano y compara
     (async () => {
       try {
-        const { tab, creado } = await obtenerTabExpediente(message.cid);
+        const { tab, creado, cid: cidVivo } = await obtenerTabExpediente(message.cid);
+        await asegurarHistoricas(tab.id, cidVivo, await anioGuardado(message.cid)).catch(e =>
+          console.warn('[Infocivil BG] Históricas no aseguradas al verificar:', e));
         const resp = await sendMessageATab(tab.id, { action: 'findPdfs' });
         if (creado) chrome.tabs.remove(tab.id);
         if (!resp || !resp.ok) { sendResponse({ ok: false, error: (resp && resp.error) || 'No se pudo escanear el expediente.' }); return; }
@@ -329,7 +331,9 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     // El progreso se sigue por chrome.storage.local ('descargaProgreso'), igual que el popup.
     (async () => {
       try {
-        const { tab, creado } = await obtenerTabExpediente(message.cid);
+        const { tab, creado, cid: cidVivo } = await obtenerTabExpediente(message.cid);
+        await asegurarHistoricas(tab.id, cidVivo, await anioGuardado(message.cid), { forzar: true }).catch(e =>
+          console.warn('[Infocivil BG] Históricas no aseguradas al actualizar:', e));
         const resp = await sendMessageATab(tab.id, { action: 'findPdfs' });
         if (!resp || !resp.ok) {
           if (creado) chrome.tabs.remove(tab.id);
@@ -681,16 +685,50 @@ async function verificarCambiosInterno(cid, archivos) {
 
 // Busca una pestaña ya abierta en ese expediente; si no hay, crea una nueva
 // (inactiva) y espera a que cargue + a que content.js se registre.
+// Variante DGN: con sesión iniciada el cid es efímero (conversación de Seam).
+// Si el guardado ya no abre ese expediente, se lo reabre desde la lista de
+// relacionados por su número. Devuelve también el cid vigente.
+async function anioGuardado(cid) {
+  const reg = await db.obtenerExpediente(cid).catch(() => null);
+  const clave = reg && db.normalizarClaveExpediente(reg.numero);
+  return clave ? clave.split('|')[2] : '';
+}
+
 async function obtenerTabExpediente(cid) {
   const urlExp = 'https://scw.pjn.gov.ar/scw/expediente.seam?cid=' + cid;
+  const reg = await db.obtenerExpediente(cid).catch(() => null);
+  const clave = reg && db.normalizarClaveExpediente(reg.numero);
+  const esElMismo = async tabId => {
+    const e = await pedir(tabId, { action: 'estadoPagina' });
+    if (!e || !e.esExpediente || !e.cid) return null;
+    if (clave) {
+      const a = await pedir(tabId, { action: 'relacionadosClaveActual' });
+      if (a && a.clave && a.clave !== clave) return null;
+    }
+    return e.cid;
+  };
+
   const tabs = await chrome.tabs.query({ url: 'https://scw.pjn.gov.ar/scw/expediente.seam*' });
   let tab = tabs.find(t => (t.url || '').includes('cid=' + cid));
-  if (tab) return { tab, creado: false };
+  if (tab) {
+    const vivo = await esElMismo(tab.id);
+    if (vivo) return { tab, creado: false, cid: vivo };
+  }
 
   tab = await chrome.tabs.create({ url: urlExp, active: false });
   await esperarCargaCompleta(tab.id);
   await new Promise(r => setTimeout(r, 1500)); // margen para que content.js se registre
-  return { tab, creado: true };
+  const vivo = await esElMismo(tab.id);
+  if (vivo) return { tab, creado: true, cid: vivo };
+
+  if (!clave) { chrome.tabs.remove(tab.id).catch(() => {}); throw new Error('No se pudo reabrir el expediente en el SCW.'); }
+  await chrome.tabs.update(tab.id, { url: 'https://scw.pjn.gov.ar/scw/consultaListaRelacionados.seam' });
+  const rel = await abrirDesdeRelacionados(tab.id, clave, () => {}).catch(e => ({ estado: 'error', error: e.message }));
+  if (rel.estado === 'abierto') return { tab, creado: true, cid: rel.cid };
+  chrome.tabs.remove(tab.id).catch(() => {});
+  if (rel.estado === 'sin-sesion') throw new Error('No hay una sesión iniciada en el SCW: iniciá sesión y volvé a intentar.');
+  if (rel.estado === 'no-figura') throw new Error('El expediente ya no figura entre tus expedientes relacionados.');
+  throw new Error(rel.error || 'No se pudo reabrir el expediente en el SCW.');
 }
 
 function esperarCargaCompleta(tabId) {

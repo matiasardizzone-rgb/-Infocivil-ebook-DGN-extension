@@ -305,18 +305,23 @@ async function esperarHistoricas(cid, desde, timeoutMs) {
   return { ok: false, error: 'tiempo agotado' };
 }
 
-export async function leerHistoricasYActuaciones(tabId, cid, avisar, anio) {
-  let vuelta, historicas = null;
-  if (Number(anio) >= ANIO_SIN_HISTORICAS) {
-    // Lista vacía explícita (no ausencia de la clave): así obtenerActuaciones
-    // no lo reporta como "históricas faltantes".
+// Deja las históricas del expediente abierto en la pestaña bajo el cid que
+// tenga la página del expediente al terminar (es el que usa findPdfs /
+// obtenerActuaciones para buscarlas) y devuelve ese cid. Si ya estaban
+// leídas para ese cid, no navega. Expedientes de 2019 en adelante no tienen.
+export async function asegurarHistoricas(tabId, cid, anio, { forzar = false, avisar = () => {} } = {}) {
+  const clave = 'pjnHistoricas_' + cid;
+  let historicas = null, vuelta;
+  if (anio && Number(anio) >= ANIO_SIN_HISTORICAS) {
     historicas = [];
     vuelta = await esperarEstado(tabId, e => e.esExpediente, 30000, 'confirmando expediente');
     if (vuelta.vencido) throw new Error('La página del expediente no terminó de cargar.');
   } else {
+    const previo = forzar ? null : (await chrome.storage.local.get(clave))[clave];
+    if (Array.isArray(previo) && previo.length) return { cid, vuelta: { cid, esExpediente: true } };
     avisar('Leyendo actuaciones históricas…');
     const desde = Date.now();
-    await chrome.storage.local.remove(['pjnHistoricas_' + cid, 'pjnHistoricasResult', 'pjnHistoricasUltimo']);
+    await chrome.storage.local.remove([clave, 'pjnHistoricasResult', 'pjnHistoricasUltimo']);
     await chrome.tabs.update(tabId, { url: urlHistoricas(cid) });
     const hist = await esperarHistoricas(cid, desde, 60000);
     if (hist.ok) historicas = hist.archivos;
@@ -326,15 +331,16 @@ export async function leerHistoricasYActuaciones(tabId, cid, avisar, anio) {
     vuelta = await esperarEstado(tabId, e => e.esExpediente, 30000, 'volviendo al expediente tras históricas');
     if (vuelta.vencido) throw new Error('No se pudo volver al expediente después de leer las históricas.');
   }
-
-  // Las históricas se dejan bajo el cid que tiene AHORA la página del
-  // expediente (es el que usa obtenerActuaciones para buscarlas), que puede
-  // no ser el original.
   const cidActual = (vuelta && vuelta.cid) || cid;
   if (historicas) {
-    await chrome.storage.local.set({ ['pjnHistoricas_' + cidActual]: historicas, ['pjnHistoricas_' + cid]: historicas });
+    await chrome.storage.local.set({ ['pjnHistoricas_' + cidActual]: historicas, [clave]: historicas });
     if (historicas.length) avisar('Históricas leídas: ' + historicas.length + '.');
   }
+  return { cid: cidActual, vuelta };
+}
+
+export async function leerHistoricasYActuaciones(tabId, cid, avisar, anio) {
+  const { cid: cidActual, vuelta } = await asegurarHistoricas(tabId, cid, anio, { forzar: true, avisar });
 
   avisar('Leyendo actuaciones…');
   // Generoso a propósito: adentro puede haber varias páginas, cada una
