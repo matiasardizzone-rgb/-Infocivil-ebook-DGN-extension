@@ -27,6 +27,13 @@ const INDICE_START_Y_PORTADA = A4[1] - 185; // deja lugar arriba para título + 
 const INDICE_START_Y_CONT    = A4[1] - 100; // páginas de índice siguientes (sin portada)
 const INDICE_MARGIN_INFERIOR = 60;
 
+// Variante DGN: sin enlaces al SCW. Las causas restringidas solo se ven con
+// sesión de un usuario vinculado, así que el enlace "público" no le sirve a
+// quien recibe el PDF. Se conservan los enlaces INTERNOS del índice (saltan
+// a otra página del mismo PDF); se quitan la URL del pie y la de la página
+// de "actuación no disponible".
+const INCLUIR_ENLACES_SCW = false;
+
 // ─── Fechas ─────────────────────────────────────────────────────────────
 // Soporta dd/mm/yyyy y ISO (yyyy-mm-dd[...]). Devuelve null si no matchea.
 function parseFecha(str) {
@@ -195,14 +202,15 @@ function pieEnTodasLasPaginas(pdf, paginas, fontRegular, fontBold, numero, titul
     const { width } = page.getSize();
     const centroX = width / 2;
 
-    // Línea 1: identificación de la actuación (gris, y=22)
+    // Línea 1: identificación de la actuación (gris, y=22; y=14 si no hay URL)
     const t1 = truncarTextoSiExcede(fontRegular, PIE_FONT_SIZE, linea1, maxWidthTexto);
     const w1 = fontRegular.widthOfTextAtSize(t1, PIE_FONT_SIZE);
     page.drawText(t1, {
-      x: centroX - w1 / 2, y: 22, size: PIE_FONT_SIZE,
+      x: centroX - w1 / 2, y: INCLUIR_ENLACES_SCW ? 22 : 14, size: PIE_FONT_SIZE,
       font: fontRegular, color: rgb(0.25, 0.25, 0.25),
     });
 
+    if (!INCLUIR_ENLACES_SCW || !urlPublica) continue;
     // Línea 2: URL pública completa, visible y clicable (y=12)
     const t2 = truncarTextoSiExcede(fontRegular, PIE_FONT_SIZE, urlPublica, maxWidthTexto);
     const w2 = fontRegular.widthOfTextAtSize(t2, PIE_FONT_SIZE);
@@ -236,6 +244,13 @@ function dibujarPaginaError(pdf, fontBold, fontRegular, numero, titulo, fecha, u
     x: MARGIN, y: height - 225, size: 10, font: fontRegular, color: rgb(0.35, 0.35, 0.35),
     maxWidth: width - 2 * MARGIN,
   });
+  if (!INCLUIR_ENLACES_SCW) {
+    page.drawText('Consultarla en el Sistema de Consulta Web con un usuario vinculado a la causa.', {
+      x: MARGIN, y: height - 255, size: 10, font: fontRegular, color: rgb(0.35, 0.35, 0.35),
+      maxWidth: width - 2 * MARGIN,
+    });
+    return page;
+  }
   page.drawText('Consultar directamente en el SCW:', {
     x: MARGIN, y: height - 255, size: 10, font: fontRegular, color: rgb(0.35, 0.35, 0.35),
   });
@@ -319,7 +334,7 @@ function dibujarPortadaEIndice(pdf, paginas, capPortada, capCont, startYPortada,
     // directo al enlace público de cada actuación en el SCW (urlPublica).
     if (entrada.destPageRef) {
       anotacionInterna(pdf, page, [MARGIN - 2, y - 3, MARGIN + w + 2, y + 10], entrada.destPageRef);
-    } else if (entrada.urlPublica) {
+    } else if (entrada.urlPublica && INCLUIR_ENLACES_SCW) {
       anotacionUri(pdf, page, [MARGIN - 2, y - 3, MARGIN + w + 2, y + 10], entrada.urlPublica);
     }
 
