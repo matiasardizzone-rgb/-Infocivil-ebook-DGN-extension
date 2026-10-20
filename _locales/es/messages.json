@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "Infocivil Ebook",
+    "description": "Nombre de la extensión"
+  },
+  "extensionDescription": {
+    "message": "Lectura, exportación y anotación de expedientes del fuero Civil como libro digital.",
+    "description": "Descripción corta (máx. 132 caracteres)"
+  }
+}

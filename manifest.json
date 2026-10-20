@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "default_locale": "es",
+  "name": "__MSG_extensionName__",
+  "version": "1.21.1",
+  "description": "__MSG_extensionDescription__",
+  "minimum_chrome_version": "109",
+  "permissions": [
+    "activeTab",
+    "downloads",
+    "storage",
+    "tabs",
+    "scripting",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "https://scw.pjn.gov.ar/*"
+  ],
+  "background": {
+    "service_worker": "src/background/index.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://scw.pjn.gov.ar/*"
+      ],
+      "js": [
+        "src/content/scw-content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Infocivil Ebook",
+    "default_popup": "src/public/popup.html"
+  },
+  "externally_connectable": {
+    "matches": [
+      "https://cncivil03.pjn.gov.ar/*"
+    ]
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

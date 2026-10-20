@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infocivil Ebook — Diagnóstico</title>
+<link rel="stylesheet" href="estilos.css">
+<link rel="icon" href="../../icons/icon48.png">
+<style>
+  .diag { max-width: 1100px; margin: 24px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 16px; }
+  .diag h1 { font-size: 20px; font-weight: 600; }
+  .diag .ayuda { font-size: 13px; color: var(--texto-suave); max-width: 780px; }
+  .diag-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .dato { background: var(--blanco); border: 1px solid var(--borde-suave); border-radius: var(--radio); padding: 10px 12px; }
+  .dato .et { font-size: 11px; color: var(--texto-tenue); text-transform: uppercase; letter-spacing: .4px; }
+  .dato .va { font-size: 15px; font-weight: 600; margin-top: 2px; word-break: break-word; }
+  .dato .va.err { color: var(--error); }
+  .acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .acciones button { padding: 8px 14px; border-radius: 6px; border: 1px solid var(--borde); background: var(--blanco);
+    color: var(--azul); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .acciones button:hover { background: var(--azul-palido); }
+  .acciones button.primario { background: var(--azul); color: var(--blanco); border-color: var(--azul); }
+  .acciones button.primario:hover { background: var(--azul-oscuro); }
+  .acciones button.peligro { color: var(--error); border-color: #e8b4b0; }
+  .acciones .sep { flex: 1; }
+  .acciones select { padding: 7px 8px; border-radius: 6px; border: 1px solid var(--borde); font-family: inherit; font-size: 13px; }
+  .aviso-mail { font-size: 12.5px; background: var(--aviso-fondo); border: 1px solid var(--aviso-borde); color: var(--aviso-texto);
+    border-radius: 6px; padding: 8px 12px; }
+  .aviso-mail:empty { display: none; }
+  .tabla-wrap { background: var(--blanco); border: 1px solid var(--borde-suave); border-radius: var(--radio); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--borde-suave); vertical-align: top; }
+  th { background: var(--fondo); font-weight: 600; color: var(--texto-suave); position: sticky; top: 0; }
+  td.f { white-space: nowrap; font-family: Consolas, monospace; color: var(--texto-tenue); }
+  td.d { font-family: Consolas, monospace; font-size: 11.5px; color: var(--texto-suave); word-break: break-all; }
+  .nivel { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .nivel.error { background: var(--error-fondo); color: var(--error); }
+  .nivel.aviso { background: var(--aviso-fondo); color: var(--aviso-texto); }
+  .nivel.info { background: var(--azul-palido); color: var(--azul); }
+  .vacio { padding: 24px; text-align: center; color: var(--texto-tenue); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-contenido">
+    <svg class="escudo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+      <path d="M12 3v18M7 7h10M5 7l-2.5 6a3.5 3.5 0 0 0 5 0L5 7zM19 7l-2.5 6a3.5 3.5 0 0 0 5 0L19 7z"/>
+      <path d="M8 21h8"/>
+    </svg>
+    <div>
+      <div class="barra-titulo">Infocivil Ebook <span class="version-ext" data-version-ext title="Versión instalada de la extensión"></span></div>
+      <div class="barra-sub">Poder Judicial de la Nación · Cámara Civil</div>
+    </div>
+    <div class="barra-acciones">
+      <a class="barra-link" href="biblioteca.html">Mis expedientes</a>
+      <a class="barra-link" href="inicio.html">Nueva consulta</a>
+    </div>
+  </div>
+</header>
+
+<main class="diag">
+  <div>
+    <h1>Diagnóstico</h1>
+    <p class="ayuda">Registro técnico de errores y avisos de la extensión. Se guarda solo en este navegador
+      y no incluye carátulas, nombres ni contenido de las actuaciones. Si algo no funciona, tocá
+      <b>Enviar por mail</b>: se descarga el archivo de diagnóstico y se abre un mensaje para SYTEC,
+      al que tenés que adjuntarlo.</p>
+  </div>
+
+  <div class="diag-grid" id="datos"></div>
+
+  <div class="acciones">
+    <button class="primario" id="btnMail">✉️ Enviar por mail</button>
+    <button id="btnDescargar">⬇️ Descargar diagnóstico</button>
+    <button id="btnCopiar">📋 Copiar</button>
+    <span class="sep"></span>
+    <select id="filtro" title="Filtrar eventos">
+      <option value="">Todos los eventos</option>
+      <option value="error">Solo errores</option>
+      <option value="aviso">Errores y avisos</option>
+    </select>
+    <button class="peligro" id="btnBorrar">Borrar registro</button>
+  </div>
+  <div class="aviso-mail" id="avisoMail"></div>
+
+  <div class="tabla-wrap">
+    <table>
+      <thead><tr><th>Fecha</th><th>Nivel</th><th>Origen</th><th>Mensaje</th><th>Detalle</th></tr></thead>
+      <tbody id="filas"></tbody>
+    </table>
+  </div>
+</main>
+
+<script type="module" src="diagnostico.js"></script>
+</body>
+</html>

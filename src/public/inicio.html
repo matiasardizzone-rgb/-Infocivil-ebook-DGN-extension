@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infocivil Ebook — Consulta de expedientes</title>
+<link rel="stylesheet" href="estilos.css">
+<link rel="icon" href="../../icons/icon48.png">
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-contenido">
+    <svg class="escudo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+      <path d="M12 3v18M7 7h10M5 7l-2.5 6a3.5 3.5 0 0 0 5 0L5 7zM19 7l-2.5 6a3.5 3.5 0 0 0 5 0L19 7z"/>
+      <path d="M8 21h8"/>
+    </svg>
+    <div>
+      <div class="barra-titulo">Infocivil Ebook <span class="version-ext" data-version-ext title="Versión instalada de la extensión"></span></div>
+      <div class="barra-sub">Poder Judicial de la Nación · Cámara Civil</div>
+    </div>
+    <div class="barra-acciones">
+      <a class="barra-link" href="biblioteca.html">Mis expedientes</a>
+      <a class="barra-link" href="inicio.html" id="linkNueva" hidden>Nueva consulta</a>
+      <a class="barra-link" href="diagnostico.html" title="Registro de errores para enviar a SYTEC">Diagnóstico</a>
+    </div>
+  </div>
+</header>
+
+<!-- ── Consulta ── -->
+<main class="centro" id="vistaBuscar">
+  <div class="tarjeta">
+    <h1 class="tarjeta-titulo">Consulta de expediente</h1>
+    <p class="tarjeta-ayuda">Ingresá los datos del expediente tal como figuran en el Sistema de Consulta Web.</p>
+
+    <form id="formBuscar" novalidate>
+      <label class="etiqueta" for="jurisdiccion">Jurisdicción</label>
+      <select id="jurisdiccion" class="control" required></select>
+
+      <label class="etiqueta" for="numero">Número / Año / Incidente</label>
+      <div class="fila-numero">
+        <input id="numero" class="control" type="text" inputmode="numeric" maxlength="9" placeholder="12345" required>
+        <span class="barra-diagonal">/</span>
+        <input id="anio" class="control" type="text" inputmode="numeric" maxlength="4" placeholder="2021" required>
+        <span class="barra-diagonal">/</span>
+        <input id="incidente" class="control control--angosto" type="text" inputmode="numeric" maxlength="3" placeholder="—" title="Número de incidente (opcional)">
+      </div>
+      <p class="ayuda-campo">El incidente es opcional. Si lo dejás vacío se abre el expediente principal.</p>
+
+      <button id="btnConsultar" class="boton-primario" type="submit">Consultar</button>
+    </form>
+
+    <div id="estadoBuscar" class="estado" role="status" aria-live="polite"></div>
+  </div>
+
+  <p class="pie-nota">
+    Los expedientes se consultan en tiempo real desde <strong>scw.pjn.gov.ar</strong>.
+    Lo que guardes en Mis expedientes queda solo en este navegador.
+  </p>
+</main>
+
+<!-- ── Expediente ── -->
+<main class="ancho" id="vistaExpediente" hidden>
+  <div class="exp-cabecera">
+    <div class="exp-id" id="expId"></div>
+    <h1 class="exp-caratula" id="expCaratula"></h1>
+    <div class="exp-meta" id="expMeta"></div>
+  </div>
+
+  <div id="avisos"></div>
+
+  <section id="seccionVinculados" hidden>
+    <h2 class="seccion-titulo">Incidentes y expedientes vinculados</h2>
+    <div id="listaVinculados"></div>
+  </section>
+
+  <div class="acciones">      <button class="accion accion--destacada" id="btnEbook">
+        <svg class="accion-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+        <span class="accion-titulo">Leer como libro</span>
+        <span class="accion-desc">Dos páginas enfrentadas y paso de hoja, como el expediente en papel. Lo guarda en Mis expedientes y lo abre.</span>
+      </button>
+
+      <button class="accion" data-formato="unificado-indice">
+        <svg class="accion-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6"/>
+          <path d="M8 13h8M8 17h5"/>
+        </svg>
+        <span class="accion-titulo">PDF unificado con índice</span>
+        <span class="accion-desc">Con portada, índice hipervinculado y el enlace público del SCW al pie de cada página.</span>
+      </button>
+
+      <button class="accion" data-formato="unificado">
+        <svg class="accion-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6"/>
+        </svg>
+        <span class="accion-titulo">PDF unificado</span>
+        <span class="accion-desc">Un solo PDF con todo el expediente, sin índice ni enlaces. Para remitir a otra jurisdicción.</span>
+      </button>
+
+      <button class="accion" data-formato="zip">
+        <svg class="accion-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6l2 3h6a2 2 0 0 1 2 2z"/>
+          <path d="M12 11v5M10 13h4"/>
+        </svg>
+        <span class="accion-titulo">Descargar ZIP</span>
+        <span class="accion-desc">Cada actuación como PDF separado, con su firma electrónica intacta y verificable.</span>
+      </button>
+
+      <div class="accion" style="cursor:default">
+        <svg class="accion-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.07 0l2-2a5 5 0 0 0-7.07-7.07l-1 1"/>
+          <path d="M14 11a5 5 0 0 0-7.07 0l-2 2a5 5 0 0 0 7.07 7.07l1-1"/>
+        </svg>
+        <span class="accion-titulo">Generar índice hipervinculado</span>
+        <span class="accion-desc">Un resumen de todas las actuaciones, cada una enlazada a su documento público en el SCW. Sin volver a descargar nada.</span>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button id="btnIndiceHiper" class="idx-btn" title="Como PDF descargable — algunos lectores (Adobe) bloquean los enlaces por seguridad" style="flex:1;justify-content:center;padding:8px 0">📄 PDF</button>
+          <button id="btnIndiceHiperHTML" class="idx-btn" title="Abre en una pestaña — los enlaces siempre funcionan, y viajan si copiás y pegás en Word" style="flex:1;justify-content:center;padding:8px 0">🌐 HTML</button>
+          <button id="btnIndiceHiperWord" class="idx-btn" title="Documento .doc con los enlaces — puede avisar que el formato no coincide con la extensión, es normal" style="flex:1;justify-content:center;padding:8px 0">📝 Word</button>
+        </div>
+      </div>
+
+      <button class="accion" id="btnExportarEpub" data-formato="epub">
+        <svg class="accion-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        <span class="accion-titulo">Exportar EPUB</span>
+        <span class="accion-desc">El expediente completo como libro electrónico — cada actuación con sus fojas, índice interno hipervinculado y el enlace público al principio de cada una.</span>
+      </button>
+    </div>
+
+
+  </div>
+
+  <div class="guardar-fila">
+    <button class="boton-secundario" id="btnGuardar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" class="boton-icono">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span id="btnGuardarTexto">Agregar a Mis expedientes</span>
+    </button>
+  </div>
+
+  <div id="estado" class="estado" role="status" aria-live="polite"></div>
+</main>
+
+<script src="../../vendor/pdf.min.js"></script>
+<script type="module" src="inicio.js"></script>
+<script src="permiso-scw.js"></script>
+</body>
+</html>

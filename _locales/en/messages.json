@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "Infocivil Ebook",
+    "description": "Extension name"
+  },
+  "extensionDescription": {
+    "message": "Read, export and annotate Civil jurisdiction case files as a digital book.",
+    "description": "Short description (max 132 characters)"
+  }
+}

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Infocivil Ebook</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;width:300px;padding:0;background:#f0f4f8}
+
+    /* Header */
+    #header{
+      background:#1a3a6b;color:#fff;
+      padding:12px 16px;
+      display:flex;align-items:center;gap:10px;
+      border-bottom:3px solid #2e80d8;
+    }
+    #header .logo{font-size:22px}
+    #header .titulo{font-size:13px;font-weight:700;line-height:1.3}
+    #header .version-ext{font-size:9.5px;font-weight:500;color:#a8c4e8;margin-left:4px;font-family:monospace}
+    #header .sub{font-size:9.5px;color:#a8c4e8;text-transform:uppercase;letter-spacing:.4px}
+
+    /* Body */
+    #body{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+
+    button{
+      width:100%;padding:10px 14px;cursor:pointer;
+      border:none;border-radius:5px;font-size:13px;font-weight:600;
+      display:flex;align-items:center;justify-content:center;gap:7px;
+      transition:background .15s;
+    }
+    #btnLibro{background:#1e5ba8;color:#fff}
+    #btnLibro:hover:not(:disabled){background:#1a3a6b}
+    #btnDescargar{background:#fff;color:#1e5ba8;border:1px solid #c8d8ec}
+    #btnDescargar:hover:not(:disabled){background:#e8f0fb}
+    #btnGuardar{background:#fff;color:#1a7a4a;border:1px solid #b8e0c8}
+    #btnGuardar:hover:not(:disabled){background:#e8f8ee}
+    #btnUnificado{background:#fff;color:#7a4a1a;border:1px solid #e0c8a8}
+    #btnUnificado:hover:not(:disabled){background:#f8f0e8}
+    button:disabled{opacity:.45;cursor:default}
+
+    #divisor{border-top:1px solid #dbe6f2;margin:2px 0}
+    #btnConsultar{background:#1a3a6b;color:#fff}
+    #btnConsultar:hover{background:#12294d}
+    #btnBiblioteca{background:#f7f9fc;color:#3a5070;border:1px solid #c8d8ec;font-weight:500}
+    #btnBiblioteca:hover{background:#eef4fb}
+
+    #cambiosBox{
+      display:none;font-size:11.5px;line-height:1.5;
+      background:#fff3d1;border:1px solid #e8d080;color:#6b5000;
+      border-radius:5px;padding:8px 10px;
+    }
+    #cambiosBox button{
+      width:auto;padding:4px 10px;margin-top:6px;font-size:11px;
+      background:#8a6000;color:#fff;
+    }
+
+    #estado{
+      font-size:12px;line-height:1.6;color:#3a5070;
+      background:#fff;border:1px solid #c8d8ec;
+      border-radius:5px;padding:10px 12px;
+      white-space:pre-wrap;min-height:36px;
+    }
+    #estado:empty{display:none}
+    #linkDiagnostico{font-size:11.5px;color:#6b7f99;text-align:center;text-decoration:none}
+    #linkDiagnostico:hover{color:#1e5ba8;text-decoration:underline}
+  </style>
+</head>
+<body>
+  <div id="header">
+    <div class="logo">⚖️</div>
+    <div>
+      <div class="titulo">Infocivil Ebook <span class="version-ext" data-version-ext title="Versión instalada de la extensión"></span></div>
+      <div class="sub">Cámara Nac. de Apelaciones en lo Civil</div>
+    </div>
+  </div>
+  <div id="body">
+    <button id="btnLibro">📖 Leer como libro</button>
+    <button id="btnDescargar">⬇️ Descargar ZIP</button>
+    <button id="btnUnificado">📎 PDF unificado con índice y enlaces</button>
+    <button id="btnGuardar">💾 Guardar en biblioteca</button>
+    <div id="cambiosBox"></div>
+    <div id="estado"></div>
+    <div id="divisor"></div>
+    <button id="btnConsultar">🔎 Consultar expediente</button>
+    <button id="btnBiblioteca">📚 Ver biblioteca</button>
+    <a href="#" id="linkDiagnostico" title="Registro de errores para enviar a SYTEC">🩺 Diagnóstico</a>
+  </div>
+  <script src="popup.js"></script>
+<script src="permiso-scw.js"></script>
+</body>
+</html>
