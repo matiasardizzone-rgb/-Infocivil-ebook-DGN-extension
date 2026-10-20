@@ -111,7 +111,10 @@
         <span class="accion-desc">Cada actuación como PDF separado, con su firma electrónica intacta y verificable.</span>
       </button>
 
-      <div class="accion" style="cursor:default">
+      <!-- Variante DGN: oculto. Su único fin son los enlaces al SCW, que en causas
+           restringidas no le sirven a quien recibe el índice. Se oculta en vez de
+           borrarse porque inicio.js engancha sus botones al cargar. -->
+      <div class="accion" style="cursor:default;display:none" hidden>
         <svg class="accion-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
           <path d="M10 13a5 5 0 0 0 7.07 0l2-2a5 5 0 0 0-7.07-7.07l-1 1"/>
           <path d="M14 11a5 5 0 0 0-7.07 0l-2 2a5 5 0 0 0 7.07 7.07l1-1"/>
@@ -131,7 +134,7 @@
           <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
         </svg>
         <span class="accion-titulo">Exportar EPUB</span>
-        <span class="accion-desc">El expediente completo como libro electrónico — cada actuación con sus fojas, índice interno hipervinculado y el enlace público al principio de cada una.</span>
+        <span class="accion-desc">El expediente completo como libro electrónico — cada actuación con sus fojas y un índice interno para navegarlo. Sin enlaces al SCW.</span>
       </button>
     </div>
 

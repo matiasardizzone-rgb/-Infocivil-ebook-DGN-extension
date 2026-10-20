@@ -757,7 +757,7 @@ async function generarEpubCompleto(tituloExpediente, ordenadas, onProgreso) {
       }).join('');
     } catch (e) {
       cuerpo = '<p class="error">ACTUACIÓN NO DISPONIBLE' + (e && e.message ? ' (' + escapeHtml(e.message) + ')' : '') + '.</p>'
-        + '<p>Consultar directamente en el SCW:</p>';
+        + '<p>Consultarla en el Sistema de Consulta Web con un usuario vinculado a la causa.</p>';
     }
 
     const capXhtml = '<?xml version="1.0" encoding="UTF-8"?>'
@@ -766,7 +766,7 @@ async function generarEpubCompleto(tituloExpediente, ordenadas, onProgreso) {
       + '</head><body>'
       + '<h2>' + numLabel + '. ' + escapeHtml(tituloCorto) + '</h2>'
       + (fecha ? '<div class="meta">' + escapeHtml(fecha) + '</div>' : '')
-      + (urlPublica ? '<div class="enlace"><a href="' + escapeHtml(urlPublica) + '">' + escapeHtml(urlPublica) + '</a></div>' : '')
+      // Variante DGN: sin enlace al SCW (causas restringidas, no le sirve a quien recibe el EPUB).
       + cuerpo
       + '</body></html>';
 
