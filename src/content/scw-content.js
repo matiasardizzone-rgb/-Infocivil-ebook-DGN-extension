@@ -1128,6 +1128,12 @@
         console.log('[PJN] Guardando', archivosHist.length, 'históricas para cid=' + cid);
         const storageData = {};
         storageData['pjnHistoricas_' + cid] = archivosHist;
+        // Con sesión iniciada, el SCW puede darle a esta página un cid
+        // distinto del expediente (conversación de Seam nueva, visto contra
+        // el sitio real: expediente cid=358872, históricas cid=366097). Se
+        // deja también la última lectura con su número de expediente, para
+        // que el fondo la tome aunque los cid no coincidan.
+        storageData.pjnHistoricasUltimo = { cid, numero: obtenerNombreExpediente(), archivos: archivosHist, ts: Date.now() };
         chrome.storage.local.set(storageData);
       } catch (e) {
         console.error('[PJN] Error auto-scraping históricas:', e);

@@ -284,25 +284,56 @@ async function esperarStorage(clave, timeoutMs) {
 // espera y la vuelta enteras.
 const ANIO_SIN_HISTORICAS = 2019;
 
-export async function leerHistoricasYActuaciones(tabId, cid, avisar, anio) {
+// Espera las históricas que deja el content script de actuacionesHistoricas
+// (ver el auto-scraping al final de scw-content.js). Acepta la clave por cid
+// o la "última lectura" posterior al pedido: con sesión iniciada el SCW
+// puede cambiar el cid de la página al navegar (conversaciones de Seam).
+async function esperarHistoricas(cid, desde, timeoutMs) {
   const clave = 'pjnHistoricas_' + cid;
-  let vuelta;
+  const inicio = Date.now();
+  while (Date.now() - inicio < timeoutMs) {
+    const d = await chrome.storage.local.get([clave, 'pjnHistoricasUltimo', 'pjnHistoricasResult']);
+    if (Array.isArray(d[clave])) return { ok: true, archivos: d[clave] };
+    const u = d.pjnHistoricasUltimo;
+    if (u && u.ts >= desde && Array.isArray(u.archivos)) {
+      if (String(u.cid) !== String(cid)) console.warn('[Infocivil consulta] Históricas leídas con otro cid (' + u.cid + ' en vez de ' + cid + '): se toman igual.');
+      return { ok: true, archivos: u.archivos };
+    }
+    if (d.pjnHistoricasResult && d.pjnHistoricasResult.ok === false) return { ok: false, error: d.pjnHistoricasResult.error };
+    await esperar(300);
+  }
+  return { ok: false, error: 'tiempo agotado' };
+}
+
+export async function leerHistoricasYActuaciones(tabId, cid, avisar, anio) {
+  let vuelta, historicas = null;
   if (Number(anio) >= ANIO_SIN_HISTORICAS) {
     // Lista vacía explícita (no ausencia de la clave): así obtenerActuaciones
     // no lo reporta como "históricas faltantes".
-    await chrome.storage.local.set({ [clave]: [] });
+    historicas = [];
     vuelta = await esperarEstado(tabId, e => e.esExpediente, 30000, 'confirmando expediente');
     if (vuelta.vencido) throw new Error('La página del expediente no terminó de cargar.');
   } else {
     avisar('Leyendo actuaciones históricas…');
-    await chrome.storage.local.remove([clave, 'pjnHistoricasResult']);
+    const desde = Date.now();
+    await chrome.storage.local.remove(['pjnHistoricas_' + cid, 'pjnHistoricasResult', 'pjnHistoricasUltimo']);
     await chrome.tabs.update(tabId, { url: urlHistoricas(cid) });
-    const hist = await esperarStorage(clave, 60000);
-    if (!hist.ok) console.warn('[Infocivil consulta] Históricas no leídas:', hist.error);
+    const hist = await esperarHistoricas(cid, desde, 60000);
+    if (hist.ok) historicas = hist.archivos;
+    else console.warn('[Infocivil consulta] Históricas no leídas:', hist.error);
 
     await chrome.tabs.update(tabId, { url: urlExpediente(cid) });
     vuelta = await esperarEstado(tabId, e => e.esExpediente, 30000, 'volviendo al expediente tras históricas');
     if (vuelta.vencido) throw new Error('No se pudo volver al expediente después de leer las históricas.');
+  }
+
+  // Las históricas se dejan bajo el cid que tiene AHORA la página del
+  // expediente (es el que usa obtenerActuaciones para buscarlas), que puede
+  // no ser el original.
+  const cidActual = (vuelta && vuelta.cid) || cid;
+  if (historicas) {
+    await chrome.storage.local.set({ ['pjnHistoricas_' + cidActual]: historicas, ['pjnHistoricas_' + cid]: historicas });
+    if (historicas.length) avisar('Históricas leídas: ' + historicas.length + '.');
   }
 
   avisar('Leyendo actuaciones…');
@@ -312,7 +343,7 @@ export async function leerHistoricasYActuaciones(tabId, cid, avisar, anio) {
   const act = await pedirCuandoListo(tabId, e => e.esExpediente, { action: 'obtenerActuaciones' }, { timeoutMs: 300000 });
   if (!act || !act.ok) throw new Error((act && act.error) || 'No se pudieron leer las actuaciones (la página del expediente no terminó de asentarse).');
 
-  return { vuelta, act };
+  return { vuelta, act, cid: cidActual };
 }
 
 async function consultar({ valorJurisdiccion, sigla, numero, anio, incidente }, sesion, avisar) {
@@ -515,7 +546,8 @@ async function consultar({ valorJurisdiccion, sigla, numero, anio, incidente }, 
 
   // Históricas: se leen navegando la misma pestaña a su página (el
   // content script las lee solo y las deja en storage) y se vuelve.
-  const { vuelta, act } = await leerHistoricasYActuaciones(tabId, cid, avisar, anio);
+  const { vuelta, act, cid: cidFinal } = await leerHistoricasYActuaciones(tabId, cid, avisar, anio);
+  cid = cidFinal; sesion.cid = cid;
   if (!incidente || incidenteAbierto) await leerVinc();
 
   // Por si la pestaña del SCW quedó al frente (ver devolverFoco()).
@@ -609,8 +641,7 @@ async function abrirVinculadoEnPestanaExistente(tabId, expedienteTexto, avisar, 
       return null; // sin respuesta, o motivo no concluyente: que decida el llamador
     }
 
-    const cid = r.cid;
-    const { vuelta, act } = await leerHistoricasYActuaciones(tabId, cid, avisar, ((expedienteTexto || '').match(/\/(\d{4})\//) || [])[1]);
+    const { vuelta, act, cid } = await leerHistoricasYActuaciones(tabId, r.cid, avisar, ((expedienteTexto || '').match(/\/(\d{4})\//) || [])[1]);
     return {
       cid, tabId, aviso: '', nombre: expedienteTexto,
       caratula: vuelta.caratula || act.tituloExpediente || '',

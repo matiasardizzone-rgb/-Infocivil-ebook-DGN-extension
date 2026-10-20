@@ -120,7 +120,8 @@ async function guardarCausa(lote, item, urlLista) {
   }
 
   const anio = (item.clave.split('|')[2]) || '';
-  const { act } = await leerHistoricasYActuaciones(tabId, exp.cid, etapa, anio);
+  const { act, cid: cidFinal } = await leerHistoricasYActuaciones(tabId, exp.cid, etapa, anio);
+  exp.cid = cidFinal || exp.cid; // el SCW puede cambiar el cid al volver de históricas
   const archivos = act.archivos || [];
   if (!archivos.length) throw new Error('No se encontraron actuaciones.');
 
