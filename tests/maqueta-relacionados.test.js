@@ -13,22 +13,30 @@ const causas = Array.from({ length: TOTAL }, (_, i) => ({
 
 const dom = new JSDOM(`<!doctype html><body><div class="container">
   <h2>Lista de Expedientes Relacionados</h2>
-  <form id="tablaConsultaLista:tablaConsultaForm"><div id="zona"></div></form></div></body>`,
+  <form id="tablaConsultaLista:tablaConsultaForm">
+  <div class="form-group"><label>Jurisdicción</label><div><select id="j1"><option value="">Seleccione una opción</option><option value="0">CSJ - Corte Suprema</option><option value="1">CIV - Cámara Nacional de Apelaciones en lo Civil</option></select></div></div>
+  <div class="form-group"><label>Número/Año</label><div><input type="text" id="n1"> <span>/</span> <input type="text" id="a1"></div></div>
+  <div class="form-group"><label>Carátula</label><div><input type="text"></div></div>
+  <div class="checkbox"><label><input type="checkbox" id="vt" onclick="__clics.verTodos=this.checked"> Ver todos los expedientes</label></div>
+  <input type="submit" value="Consultar" onclick="__filtrar();return false">
+  <div id="zona"></div></form></div></body>`,
   { url: 'https://scw.pjn.gov.ar/scw/consultaListaRelacionados.seam', runScripts: 'dangerously', pretendToBeVisual: true });
 const { window } = dom;
 const { document } = window;
 Object.defineProperty(window.HTMLElement.prototype, 'innerText', { get() { return this.textContent; } });
 
-const clics = { ojo: [], estrella: 0, libro: 0, escrito: 0, paginas: [] };
+const clics = { ojo: [], estrella: 0, libro: 0, escrito: 0, paginas: [], filtros: [] };
+let filtro = null;
 window.__clics = clics;
 
 function render(pag) {
   const desde = (pag - 1) * POR_PAG;
-  const filas = causas.slice(desde, desde + POR_PAG).map((c, i) => `<tr>
+  const base = filtro ? causas.filter(c => filtro(c)) : causas;
+  const filas = base.slice(desde, desde + POR_PAG).map((c, i) => `<tr>
     <td class="column">${c.exp}</td><td class="column">JUZGADO CIVIL 86 - SECRETARIA Nº 45</td>
     <td class="column">${c.car}</td><td class="column">EN LETRA</td><td class="column">${c.act}</td>
     <td class="text-center">
-      <a href="#" class="btn btn-default btn-sm no-margin" onclick="jsf.util.chain(this,event,'PF(\\'dialog\\').show();','mojarra.jsfcljs(document.getElementById(\\'tablaConsultaLista:tablaConsultaForm\\'),{\\'x:dataTable:${i}:j\\':\\'x\\'},\\'\\')');__clics.ojo.push(${desde + i});return false">ojo</a>
+      <a href="#" class="btn btn-default btn-sm no-margin" onclick="jsf.util.chain(this,event,'PF(\\'dialog\\').show();','mojarra.jsfcljs(document.getElementById(\\'tablaConsultaLista:tablaConsultaForm\\'),{\\'x:dataTable:${i}:j\\':\\'x\\'},\\'\\')');__clics.ojo.push(${causas.indexOf(c)});return false">ojo</a>
       <button class="btn btn-default dropdown-toggle"></button>
       <ul><li><a href="#" onclick="mojarra.jsfcljs(f,{'a':'b','conversationPropagation':'join'},'');__clics.libro++;return false">Libro digital</a></li>
       <li><a href="#" onclick="mojarra.jsfcljs(f,{'a':'b','conversationPropagation':'join'},'_blank');__clics.escrito++;return false">Presentar escrito</a></li></ul>
@@ -51,6 +59,12 @@ window.jsf = { util: { chain() {} } };
 window.mojarra = { jsfcljs() {}, ab() {} };
 window.PF = () => ({ show() {} });
 window.RichFaces = { ajax() {} };
+window.__filtrar = () => {
+  const j = document.getElementById('j1').value, n = document.getElementById('n1').value, a = document.getElementById('a1').value;
+  clics.filtros.push(j + ':' + n + '/' + a);
+  filtro = c => j === '1' && Number(c.exp.match(/(\d+)\//)[1]) === Number(n) && c.exp.endsWith('/' + a);
+  setTimeout(() => render(1), 250);
+};
 window.__irA = n => { clics.paginas.push(n); setTimeout(() => render(n), 250); };
 render(1);
 
@@ -103,10 +117,20 @@ const ok = (cond, txt) => { console.log((cond ? 'OK   ' : 'FALLA') + ' ' + txt);
   console.log('      estado: ' + raiz.getElementById('estado').textContent);
   ok(filasPanel[0].textContent.includes('Al día') && filasPanel[1].textContent.includes('Con novedades'), 'etiquetas de biblioteca');
 
+  // Desde la página 3, una causa de la página 1: debe ir por el filtro, sin paginar
+  const pagsAntes = clics.paginas.length;
+  const objF = 5, claveF = 'CIV|' + (1000 + objF * 7) + '|20' + String(10 + (objF % 15)).padStart(2, '0') + '|0';
+  const rf = await mensaje({ action: 'relacionadosAbrir', clave: claveF });
+  await esperar(600);
+  ok(rf.ok && clics.ojo[0] === objF && clics.paginas.length === pagsAntes && clics.filtros.length === 1 && clics.verTodos,
+    'abrir por filtro Número/Año con "Ver todos": ' + JSON.stringify({ ojo: clics.ojo, filtros: clics.filtros, verTodos: clics.verTodos }));
+  filtro = null; render(3); clics.ojo = []; await esperar(50);
+
+  // Sin filtro (reintento tras recarga): recorre páginas
   // Abrir una causa de la página 2 estando en la página 3
   const objetivo = 20; // índice global → página 2
   const clave = 'CIV|' + (1000 + objetivo * 7) + '|20' + String(10 + (objetivo % 15)).padStart(2, '0') + '|0';
-  const r = await mensaje({ action: 'relacionadosAbrir', clave, pagina: 2 });
+  const r = await mensaje({ action: 'relacionadosAbrir', clave, pagina: 2, usarFiltro: false });
   await esperar(600);
   ok(r.ok && JSON.stringify(clics.ojo) === JSON.stringify([objetivo]), 'abrir causa de otra página clickea el ojo correcto: ' + JSON.stringify(clics.ojo));
 

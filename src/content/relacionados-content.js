@@ -241,10 +241,78 @@
     }
   }
 
-  // Abre la causa (clic en el ojo). Busca primero en la página actual,
-  // después en la página donde se la vio (pista) y si no, recorre desde la 1.
-  async function abrirCausa(clave, paginaPista) {
+  // ─── Filtro "Personalizar Resultados" ──────────────────────────────────
+  // Jurisdicción + Número/Año + "Ver todos los expedientes" (incluye los que
+  // no están en trámite). Mucho más rápido que recorrer la lista página por
+  // página. Los controles se ubican por su etiqueta visible, no por id
+  // (los j_idtN cambian). Puede responder por AJAX o recargando la página
+  // entera: en el segundo caso este script se destruye y el fondo reintenta
+  // (la página nueva ya viene filtrada, ver relacionados.js / consulta.js).
+  function grupoDeEtiqueta(re) {
+    const etiquetas = Array.from(document.querySelectorAll('label, th, td, span, div'))
+      .filter(el => el.children.length === 0 && re.test(textoDe(el)));
+    for (const et of etiquetas) {
+      let c = et.parentElement;
+      for (let i = 0; c && i < 4; i++, c = c.parentElement) {
+        if (c.querySelector('input:not([type=hidden]), select')) return c;
+      }
+    }
+    return null;
+  }
+  function filtroDisponible() {
+    const gNum = grupoDeEtiqueta(/^N[úu]mero\s*\/\s*A[ñn]o$/i);
+    const gJur = grupoDeEtiqueta(/^Jurisdicci[óo]n$/i);
+    if (!gNum || !gJur) return null;
+    const textos = Array.from(gNum.querySelectorAll('input[type=text], input:not([type])'));
+    const select = gJur.querySelector('select');
+    const form = (textos[0] && textos[0].closest('form')) || document;
+    const boton = Array.from(form.querySelectorAll('input[type=submit], input[type=button], button, a'))
+      .find(b => /^Consultar$/i.test((b.value || textoDe(b) || '').trim()));
+    const verTodos = Array.from(form.querySelectorAll('input[type=checkbox]'))
+      .find(cb => /ver todos/i.test(textoDe(cb.closest('label, div, td, span') || cb.parentElement)));
+    if (textos.length < 2 || !select || !boton) return null;
+    return { numero: textos[0], anio: textos[1], select, boton, verTodos };
+  }
+  function poner(el, valor) {
+    el.value = valor;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  async function filtrarPorNumero(clave) {
+    const f = filtroDisponible();
+    if (!f) return false;
+    const [sigla, numero, anio] = clave.split('|');
+    const opcion = Array.from(f.select.options).find(o => new RegExp('^\\s*' + sigla + '\\b', 'i').test(o.textContent));
+    if (!opcion) return false;
+    if (f.select.value !== opcion.value) {
+      poner(f.select, opcion.value);
+      await esperar(1200); // el select puede disparar un AJAX propio
+    }
+    poner(f.numero, String(numero));
+    poner(f.anio, String(anio));
+    if (f.verTodos && !f.verTodos.checked) await clicEnPagina(f.verTodos);
+    await esperar(300);
+    const antes = firmaTabla();
+    await clicEnPagina(f.boton);
+    // Resultado por AJAX: la tabla cambia. Si recarga la página, este script
+    // muere acá y el fondo vuelve a pedir sobre la página ya filtrada.
+    const inicio = Date.now();
+    while (Date.now() - inicio < ESPERA_CAMBIO_MS) {
+      await esperar(300);
+      if (filaPorClave(clave)) return true;
+      if (firmaTabla() !== antes) return !!filaPorClave(clave);
+    }
+    return !!filaPorClave(clave);
+  }
+
+  // Abre la causa (clic en el ojo): página actual → filtro por número →
+  // como respaldo, la página donde se la vio y el recorrido desde la 1.
+  async function abrirCausa(clave, paginaPista, usarFiltro = true) {
     let fila = filaPorClave(clave);
+    if (!fila && usarFiltro) {
+      try { if (await filtrarPorNumero(clave)) fila = filaPorClave(clave); }
+      catch (e) { console.warn('[Infocivil DGN] Falló el filtro por número, se recorre la lista:', e); }
+    }
     if (!fila && paginaPista) { await irAPagina(paginaPista); fila = filaPorClave(clave); }
     if (!fila) {
       await irAPagina(1);
@@ -285,7 +353,7 @@
       if (!esLista()) { sendResponse({ ok: false, error: 'La pestaña no está en la lista de relacionados.' }); return false; }
       (async () => {
         try {
-          const ojo = await abrirCausa(msg.clave, msg.pagina);
+          const ojo = await abrirCausa(msg.clave, msg.pagina, msg.usarFiltro !== false);
           // Se responde ANTES del clic: el submit navega y destruye este
           // script, y la respuesta se perdería.
           sendResponse({ ok: true });

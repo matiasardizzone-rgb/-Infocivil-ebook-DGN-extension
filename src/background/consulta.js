@@ -62,6 +62,31 @@ export async function esperarLogin(pestanaPrevia, avisar) {
   throw new Error('Pasaron 10 minutos sin que se iniciara sesión. Volvé a consultar para reintentar.');
 }
 
+// Pide abrir una causa en la lista. Si no llega respuesta, el filtro por
+// número recargó la página entera (submit JSF completo) y el script murió:
+// se espera a que vuelva la lista, ya filtrada, y se repite SIN volver a
+// filtrar (evita un bucle de recargas).
+export async function pedirAbrirEnLista(tabId, clave, pagina) {
+  let usarFiltro = true;
+  for (let intento = 0; intento < 3; intento++) {
+    const r = await pedir(tabId, { action: 'relacionadosAbrir', clave, pagina, usarFiltro });
+    if (r) return r;
+    usarFiltro = false;
+    const t0 = Date.now();
+    while (Date.now() - t0 < 30000) {
+      await esperar(500);
+      const tab = await chrome.tabs.get(tabId).catch(() => null);
+      if (!tab) return null;
+      if (tab.status !== 'complete') continue;
+      const ex = await pedir(tabId, { action: 'estadoPagina' });
+      if (ex && ex.esExpediente) return { ok: true }; // el ojo ya navegó
+      const e = await pedir(tabId, { action: 'relacionadosEstadoPagina' });
+      if (e && e.esLista) break;
+    }
+  }
+  return null;
+}
+
 // { estado: 'abierto', cid } | { estado: 'sin-sesion' } | { estado: 'no-figura' }
 // La pestaña ya tiene que estar navegando a URL_RELACIONADOS.
 export async function abrirDesdeRelacionados(tabId, clave, avisar) {
@@ -93,7 +118,7 @@ export async function abrirDesdeRelacionados(tabId, clave, avisar) {
   }
 
   avisar('Buscando en tus expedientes relacionados…');
-  const r = await pedir(tabId, { action: 'relacionadosAbrir', clave });
+  const r = await pedirAbrirEnLista(tabId, clave);
   if (!r) throw new Error('No se pudo leer la lista de expedientes relacionados.');
   if (!r.ok) {
     if (/no figura/i.test(r.error || '')) return { estado: 'no-figura' };

@@ -16,7 +16,7 @@
 // del content script (relacionados-content.js).
 
 import * as db from '../lib/db.js';
-import { pedir, esperarEstado, leerHistoricasYActuaciones } from './consulta.js';
+import { pedir, esperarEstado, leerHistoricasYActuaciones, pedirAbrirEnLista } from './consulta.js';
 
 const SCW = 'https://scw.pjn.gov.ar';
 const RUTAS_PERMITIDAS = ['/scw/consultaListaRelacionados.seam', '/scw/consultaListaFavoritos.seam'];
@@ -106,8 +106,9 @@ async function guardarCausa(lote, item, urlLista) {
   await esperarLista(tabId);
 
   etapa('abriendo la causa');
-  const r = await pedir(tabId, { action: 'relacionadosAbrir', clave: item.clave, pagina: item.pagina });
-  if (r && !r.ok) throw new Error(r.error);
+  const r = await pedirAbrirEnLista(tabId, item.clave, item.pagina);
+  if (!r) throw new Error('No se pudo abrir la causa desde la lista.');
+  if (!r.ok) throw new Error(r.error);
   const exp = await esperarEstado(tabId, e => e.esExpediente && !!e.cid, 45000, 'abriendo ' + item.expediente);
   if (exp.vencido) { await asegurarPestanaViva(tabId); throw new Error('El expediente no terminó de abrir.'); }
 
