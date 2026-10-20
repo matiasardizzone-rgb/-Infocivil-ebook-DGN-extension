@@ -36,6 +36,32 @@ const RE_LOGIN = /^https:\/\/(sso|portalpjn)\.pjn\.gov\.ar\//;
 const claveDe = (sigla, numero, anio, inc) =>
   String(sigla || '').toUpperCase() + '|' + Number(numero) + '|' + anio + '|' + (inc ? Number(inc) : 0);
 
+// Abre el ingreso del PJN y espera (hasta 10 min) a que el usuario inicie
+// sesión. El portal termina en portalpjn.pjn.gov.ar/inicio ("Entradas");
+// en ese momento se cierra la pestaña y se vuelve a la de la extensión.
+export async function esperarLogin(pestanaPrevia, avisar) {
+  const login = await chrome.tabs.create({ url: URL_LOGIN, active: true,
+    ...(pestanaPrevia ? { windowId: pestanaPrevia.windowId, index: pestanaPrevia.index + 1 } : {}) });
+  avisar('No hay sesión iniciada. Ingresá con tu usuario en la pestaña que se abrió; la consulta sigue sola después.');
+  const inicio = Date.now();
+  while (Date.now() - inicio < 10 * 60000) {
+    await esperar(800);
+    const tab = await chrome.tabs.get(login.id).catch(() => null);
+    if (!tab) throw new Error('Se cerró la pestaña de ingreso sin iniciar sesión. Volvé a consultar para reintentar.');
+    let u = null;
+    try { u = new URL(tab.url || ''); } catch (e) { continue; }
+    if (u.hostname === 'portalpjn.pjn.gov.ar' && tab.status === 'complete' &&
+        u.pathname !== '/' && !u.pathname.startsWith('/auth')) {
+      await esperar(1000); // margen para que el SSO termine de dejar las cookies
+      chrome.tabs.remove(login.id).catch(() => {});
+      if (pestanaPrevia) chrome.tabs.update(pestanaPrevia.id, { active: true }).catch(() => {});
+      return;
+    }
+  }
+  chrome.tabs.remove(login.id).catch(() => {});
+  throw new Error('Pasaron 10 minutos sin que se iniciara sesión. Volvé a consultar para reintentar.');
+}
+
 // { estado: 'abierto', cid } | { estado: 'sin-sesion' } | { estado: 'no-figura' }
 // La pestaña ya tiene que estar navegando a URL_RELACIONADOS.
 export async function abrirDesdeRelacionados(tabId, clave, avisar) {
@@ -316,10 +342,22 @@ async function consultar({ valorJurisdiccion, sigla, numero, anio, incidente }, 
     rel = await abrirDesdeRelacionados(tabId, claveDe(sigla, numero, anio, null), avisar);
   }
   if (rel.estado === 'sin-sesion') {
-    chrome.tabs.create({ url: URL_LOGIN, active: true,
-      ...(pestanaPrevia ? { windowId: pestanaPrevia.windowId, index: pestanaPrevia.index + 1 } : {}) }).catch(() => {});
-    throw new Error('No hay una sesión iniciada en el Sistema de Consulta Web. Se abrió la página de ingreso del PJN: ' +
-      'iniciá sesión con tu usuario y volvé a consultar.');
+    // Se abre el ingreso del PJN, se espera a que el usuario termine (el
+    // portal lo deja en /inicio), se cierra esa pestaña, se vuelve a la de
+    // la extensión y se reintenta solo.
+    await esperarLogin(pestanaPrevia, avisar);
+    avisar('Sesión iniciada. Buscando en tus expedientes relacionados…');
+    await chrome.tabs.update(tabId, { url: URL_RELACIONADOS });
+    rel = await abrirDesdeRelacionados(tabId, claveDe(sigla, numero, anio, incidente), avisar);
+    if (rel.estado === 'abierto' && incidente) incidenteAbierto = true;
+    if (rel.estado === 'no-figura' && incidente) {
+      await chrome.tabs.update(tabId, { url: URL_RELACIONADOS });
+      rel = await abrirDesdeRelacionados(tabId, claveDe(sigla, numero, anio, null), avisar);
+    }
+    if (rel.estado === 'sin-sesion') {
+      throw new Error('Ya iniciaste sesión en el portal, pero el Sistema de Consulta Web no la tomó. ' +
+        'Entrá una vez a "Consultas" desde el menú del portal y volvé a consultar.');
+    }
   }
   if (rel.estado === 'abierto') {
     estado = { cid: rel.cid };
