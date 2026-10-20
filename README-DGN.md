@@ -24,6 +24,21 @@ para poder llevarlos de vuelta a la extensión principal.
 Se llama "Mi biblioteca" y no "Mis expedientes" porque el SCW ya tiene un
 menú con ese nombre (los favoritos de la estrella).
 
+## Consulta desde la pantalla de inicio
+
+En esta variante, "Consulta de expediente" busca primero en la **lista de
+relacionados** del usuario (las causas restringidas no aparecen en la
+Consulta Pública):
+
+1. Si no hay sesión (se queda en el SSO o el SCW no muestra la lista), abre
+   `portalpjn.pjn.gov.ar` para que el usuario inicie sesión y avisa.
+2. Si la causa figura, la abre con el ojo de su fila. Un incidente se busca
+   como fila propia; si no está, se abre el principal y el incidente por
+   Vinculados.
+3. Si no figura, prueba la Consulta Pública como último recurso.
+
+Prueba: `node tests/sesion-relacionados.test.mjs ../src/background/consulta.js`.
+
 ## Arquitectura
 
 | Pieza | Archivo |

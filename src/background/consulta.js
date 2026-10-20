@@ -24,6 +24,65 @@ const urlHistoricas = cid => SCW + '/actuacionesHistoricas.seam?cid=' + cid;
 
 const esperar = ms => new Promise(r => setTimeout(r, ms));
 
+// ─── Variante DGN: búsqueda en "Lista de Expedientes Relacionados" ─────────
+// Las causas restringidas (las que ve un defensor o letrado vinculado por el
+// juzgado) no aparecen en la Consulta Pública. Con sesión iniciada se buscan
+// primero en la lista de relacionados del usuario; la Consulta Pública queda
+// como último recurso.
+const URL_RELACIONADOS = SCW + '/consultaListaRelacionados.seam';
+const URL_LOGIN = 'https://portalpjn.pjn.gov.ar/';
+const RE_LOGIN = /^https:\/\/(sso|portalpjn)\.pjn\.gov\.ar\//;
+
+const claveDe = (sigla, numero, anio, inc) =>
+  String(sigla || '').toUpperCase() + '|' + Number(numero) + '|' + anio + '|' + (inc ? Number(inc) : 0);
+
+// { estado: 'abierto', cid } | { estado: 'sin-sesion' } | { estado: 'no-figura' }
+// La pestaña ya tiene que estar navegando a URL_RELACIONADOS.
+export async function abrirDesdeRelacionados(tabId, clave, avisar) {
+  const inicio = Date.now();
+  let enLoginDesde = null, fueraDeListaDesde = null, listaVaciaDesde = null;
+  while (true) {
+    if (Date.now() - inicio > 45000) throw new Error('El SCW no respondió (no cargó la lista de expedientes relacionados).');
+    const tab = await chrome.tabs.get(tabId).catch(() => null);
+    if (!tab) throw new Error('Se cerró la ventana del SCW.');
+    const url = tab.url || tab.pendingUrl || '';
+    // El SSO puede pasar de largo (redirección con la sesión ya abierta):
+    // solo cuenta como "sin sesión" si se queda en la página de login.
+    if (RE_LOGIN.test(url)) {
+      if (enLoginDesde === null) enLoginDesde = Date.now();
+      else if (tab.status === 'complete' && Date.now() - enLoginDesde > 5000) return { estado: 'sin-sesion' };
+    } else if (tab.status === 'complete') {
+      enLoginDesde = null;
+      const e = await pedir(tabId, { action: 'relacionadosEstadoPagina' });
+      if (e && e.esLista && e.filas > 0) break;
+      if (e && e.esLista) {                       // lista sin filas: sin causas vinculadas
+        if (listaVaciaDesde === null) listaVaciaDesde = Date.now();
+        else if (Date.now() - listaVaciaDesde > 6000) return { estado: 'no-figura' };
+      } else if (e) {                             // otra página del SCW: sin sesión de letrado
+        if (fueraDeListaDesde === null) fueraDeListaDesde = Date.now();
+        else if (Date.now() - fueraDeListaDesde > 5000) return { estado: 'sin-sesion' };
+      }
+    }
+    await esperar(400);
+  }
+
+  avisar('Buscando en tus expedientes relacionados…');
+  const r = await pedir(tabId, { action: 'relacionadosAbrir', clave });
+  if (!r) throw new Error('No se pudo leer la lista de expedientes relacionados.');
+  if (!r.ok) {
+    if (/no figura/i.test(r.error || '')) return { estado: 'no-figura' };
+    throw new Error(r.error);
+  }
+  avisar('Abriendo el expediente…');
+  const exp = await esperarEstado(tabId, e => e.esExpediente && !!e.cid, 45000, 'abriendo desde relacionados');
+  if (exp.vencido) throw new Error('El expediente no terminó de abrir desde la lista de relacionados.');
+  const actual = await pedir(tabId, { action: 'relacionadosClaveActual' });
+  if (actual && actual.clave && actual.clave !== clave) {
+    throw new Error('Se abrió otra causa (' + actual.clave.replace(/\|/g, ' ') + ') en lugar de la pedida.');
+  }
+  return { estado: 'abierto', cid: exp.cid };
+}
+
 // La ventana de consulta se enfoca (ver más abajo, en consultar()); esto le
 // devuelve el foco al operador apenas termina de buscar, sin depender de
 // que la ventana de consulta se cierre (sigue abierta, sin foco, por si
@@ -238,15 +297,40 @@ async function consultar({ valorJurisdiccion, sigla, numero, anio, incidente }, 
   // oculta sí funcionó en v0.9.0, y la paginación en segundo plano sí
   // trajo las 29 en v0.5.x.
   const tab = await chrome.tabs.create({
-    url: URL_HOME, active: false,
+    url: URL_RELACIONADOS, active: false,
     ...(pestanaPrevia ? { windowId: pestanaPrevia.windowId, index: pestanaPrevia.index + 1 } : {}),
   });
   const tabId = tab.id;
   sesion.tabId = tabId;
   sesion.pestanaPrevia = pestanaPrevia && pestanaPrevia.id !== tabId ? pestanaPrevia.id : null;
 
+  // Variante DGN: primero la lista de relacionados del usuario (el incidente
+  // puede figurar como fila propia; si no, se abre el principal y después
+  // el incidente por la solapa Vinculados, como siempre).
+  let estado = null;
+  let incidenteAbierto = false;
+  let rel = await abrirDesdeRelacionados(tabId, claveDe(sigla, numero, anio, incidente), avisar);
+  if (rel.estado === 'abierto' && incidente) incidenteAbierto = true;
+  if (rel.estado === 'no-figura' && incidente) {
+    await chrome.tabs.update(tabId, { url: URL_RELACIONADOS });
+    rel = await abrirDesdeRelacionados(tabId, claveDe(sigla, numero, anio, null), avisar);
+  }
+  if (rel.estado === 'sin-sesion') {
+    chrome.tabs.create({ url: URL_LOGIN, active: true,
+      ...(pestanaPrevia ? { windowId: pestanaPrevia.windowId, index: pestanaPrevia.index + 1 } : {}) }).catch(() => {});
+    throw new Error('No hay una sesión iniciada en el Sistema de Consulta Web. Se abrió la página de ingreso del PJN: ' +
+      'iniciá sesión con tu usuario y volvé a consultar.');
+  }
+  if (rel.estado === 'abierto') {
+    estado = { cid: rel.cid };
+  } else {
+    avisar('No figura entre tus expedientes relacionados; probando la Consulta Pública…');
+    await chrome.tabs.update(tabId, { url: URL_HOME });
+  }
+
+  if (!estado) {
   const home = await esperarEstado(tabId, e => e.enHome, 30000, 'esperando home.seam');
-  if (home.vencido) throw new Error('El SCW no respondió (no cargó la Consulta Pública).');
+  if (home.vencido) throw new Error('El expediente ' + nombre + ' no figura entre tus expedientes relacionados (y la Consulta Pública no respondió).');
 
   // Tres salidas posibles: el expediente, una página de resultados, o de
   // vuelta en home.seam (típicamente con un mensaje de "no encontrado").
@@ -257,7 +341,6 @@ async function consultar({ valorJurisdiccion, sigla, numero, anio, incidente }, 
   let navego = false;
   const onUpdated = (id, info) => { if (id === tabId && info.status === 'loading') navego = true; };
   chrome.tabs.onUpdated.addListener(onUpdated);
-  let estado;
   try {
     avisar('Buscando ' + nombre + '…');
     const r = await pedirCuandoListo(tabId, e => e.enHome,
@@ -295,13 +378,14 @@ async function consultar({ valorJurisdiccion, sigla, numero, anio, incidente }, 
         continue;
       }
       if (estado.enHome) {
-        throw new Error('No se encontró el expediente ' + nombre + '.' +
+        throw new Error('No se encontró el expediente ' + nombre + ' ni entre tus expedientes relacionados ni en la Consulta Pública.' +
           (estado.mensajes ? ' El SCW dice: ' + estado.mensajes : ''));
       }
     }
   } finally {
     chrome.tabs.onUpdated.removeListener(onUpdated);
   }
+  } // fin de la Consulta Pública (solo si no figuraba en relacionados)
 
   let cid = estado.cid;
   let aviso = '';
@@ -320,9 +404,10 @@ async function consultar({ valorJurisdiccion, sigla, numero, anio, incidente }, 
     if (vin && vin.ok) vinculados = vin.vinculados || [];
     else console.warn('[Infocivil consulta] No se pudo leer vinculados:', vin && vin.error);
   };
-  if (incidente) await leerVinc();
+  if (incidente && !incidenteAbierto) await leerVinc();
+  if (incidenteAbierto) nombre = sigla + ' ' + numero + '/' + anio + '/' + incidente;
 
-  if (incidente) {
+  if (incidente && !incidenteAbierto) {
     const objetivo = sigla + ' ' + numero + '/' + anio + '/' + incidente;
     avisar('Abriendo el incidente ' + incidente + '…');
     const cidPrincipal = cid;
@@ -368,7 +453,7 @@ async function consultar({ valorJurisdiccion, sigla, numero, anio, incidente }, 
   // Históricas: se leen navegando la misma pestaña a su página (el
   // content script las lee solo y las deja en storage) y se vuelve.
   const { vuelta, act } = await leerHistoricasYActuaciones(tabId, cid, avisar, anio);
-  if (!incidente) await leerVinc();
+  if (!incidente || incidenteAbierto) await leerVinc();
 
   // Por si la pestaña del SCW quedó al frente (ver devolverFoco()).
   devolverFoco(sesion);
