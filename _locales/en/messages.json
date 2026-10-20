@@ -1,10 +1,10 @@
 {
   "extensionName": {
-    "message": "Infocivil Ebook",
+    "message": "Infocivil Ebook DGN",
     "description": "Extension name"
   },
   "extensionDescription": {
-    "message": "Read, export and annotate Civil jurisdiction case files as a digital book.",
+    "message": "Case files linked to the signed-in SCW user as a digital book: read, export, annotate. Defensoría General de la Nación.",
     "description": "Short description (max 132 characters)"
   }
 }

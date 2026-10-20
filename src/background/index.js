@@ -3,6 +3,7 @@ import { registrar, instalarCaptura } from '../lib/registro.js';
 import { generarPdfUnificado, generarIndiceHipervinculado } from '../lib/unificador.js';
 import { iniciarCanalExterno } from './externo.js';
 import { iniciarConsultas, iniciarAperturaVinculados } from './consulta.js';
+import { iniciarRelacionados } from './relacionados.js';
 import { PDFDocument } from '../../vendor/pdf-lib.esm.js';
 
 // Trozos de actuaciones grandes en tránsito: clave → [Uint8Array].
@@ -16,6 +17,8 @@ iniciarCanalExterno();
 // Consulta de expedientes desde la pantalla de inicio (src/public/inicio.html).
 iniciarConsultas();
 iniciarAperturaVinculados();
+// Variante DGN: lista de expedientes relacionados del SCW con sesión iniciada.
+iniciarRelacionados();
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (!message) return;

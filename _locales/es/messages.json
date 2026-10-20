@@ -1,10 +1,10 @@
 {
   "extensionName": {
-    "message": "Infocivil Ebook",
+    "message": "Infocivil Ebook DGN",
     "description": "Nombre de la extensión"
   },
   "extensionDescription": {
-    "message": "Lectura, exportación y anotación de expedientes del fuero Civil como libro digital.",
+    "message": "Expedientes vinculados al usuario del SCW como libro digital: lectura, exportación y anotación. Defensoría General de la Nación.",
     "description": "Descripción corta (máx. 132 caracteres)"
   }
 }

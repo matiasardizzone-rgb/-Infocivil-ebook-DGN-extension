@@ -40,7 +40,7 @@ async function devolverFoco(sesion) {
 
 // Mensaje al content script de la pestaña; null si todavía no hay uno
 // escuchando (la página está navegando o cargando).
-function pedir(tabId, mensaje) {
+export function pedir(tabId, mensaje) {
   return new Promise(resolve => {
     try {
       chrome.tabs.sendMessage(tabId, mensaje, resp => {
@@ -64,7 +64,7 @@ function pedir(tabId, mensaje) {
 // margen cuanto más tarda —para no hostigar a una pestaña que está
 // genuinamente atascada— pero deja de partir con casi un segundo de
 // ventaja regalado en el caso normal, que es la mayoría de las veces.
-async function pedirCuandoListo(tabId, condicion, mensaje, { timeoutMs = 30000 } = {}) {
+export async function pedirCuandoListo(tabId, condicion, mensaje, { timeoutMs = 30000 } = {}) {
   const inicio = Date.now();
   let ultimoEstado = null, intento = 0;
   while (Date.now() - inicio < timeoutMs) {
@@ -114,7 +114,7 @@ async function pedirCuandoListo(tabId, condicion, mensaje, { timeoutMs = 30000 }
 }
 
 // Espera hasta que el estado de la página cumpla la condición.
-async function esperarEstado(tabId, condicion, timeoutMs, etiqueta = '') {
+export async function esperarEstado(tabId, condicion, timeoutMs, etiqueta = '') {
   const inicio = Date.now();
   let ultimo = null, intento = 0;
   while (Date.now() - inicio < timeoutMs) {
@@ -174,7 +174,7 @@ async function esperarStorage(clave, timeoutMs) {
 // espera y la vuelta enteras.
 const ANIO_SIN_HISTORICAS = 2019;
 
-async function leerHistoricasYActuaciones(tabId, cid, avisar, anio) {
+export async function leerHistoricasYActuaciones(tabId, cid, avisar, anio) {
   const clave = 'pjnHistoricas_' + cid;
   let vuelta;
   if (Number(anio) >= ANIO_SIN_HISTORICAS) {
