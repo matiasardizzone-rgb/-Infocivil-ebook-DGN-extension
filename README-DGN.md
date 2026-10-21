@@ -92,6 +92,18 @@ maqueta de la lista con la estructura relevada (datos inventados):
 cd tests && npm i jsdom@24 && node maqueta-relacionados.test.js ../src/content/relacionados-content.js
 ```
 
+## Publicación
+
+| Tienda | Id | Visibilidad | Instructivo |
+|---|---|---|---|
+| Chrome Web Store | `ckdcbpjlmnjmkfmjbnadjaojgldlldk` | No listada | `docs/PUBLICACION-CHROME.md` |
+| Edge Add-ons | CRX `gcjafhdmkjmkhmeojlogfefonihgfike` · Store `0RDCKCGS4JXC` | Pública | `docs/PUBLICACION-EDGE.md` |
+| Firefox (AMO) | `infocivil-ebook-dgn@sytec.pjn.gov.ar` (no cambiar) | Visible | `docs/PUBLICACION-FIREFOX.md` |
+
+Paquetes: `.\tools\empaquetar.ps1` (ZIP de Chrome/Edge y de Firefox en `..\paquetes\`).
+Política de privacidad: `https://matiasardizzone-rgb.github.io/-Infocivil-ebook-DGN-extension/privacidad-dgn.html`
+Contacto público: `cncivil.sytec@outlook.com`
+
 ## Pendiente
 
 - Probado contra el SCW real con un usuario letrado (consulta, históricas,
@@ -99,9 +111,5 @@ cd tests && npm i jsdom@24 && node maqueta-relacionados.test.js ../src/content/r
 - Confirmar el comportamiento del paginador con más de 10 páginas.
 - Leer la bandeja "Entradas" de `portalpjn.pjn.gov.ar` como aviso de
   novedades (habría que volver a agregar ese permiso de sitio al manifest).
-- Publicación en Chrome: ver `docs/PUBLICACION-CHROME.md`.
-- Publicar en Edge y Firefox: Firefox necesita `background.scripts`
-  y `browser_specific_settings.gecko.id`, y no tiene
-  `externally_connectable`.
 - Definir con la DGN la política de exportaciones (ZIP, EPUB) y de borrado
   al cerrar sesión.
