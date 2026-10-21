@@ -94,12 +94,13 @@ cd tests && npm i jsdom@24 && node maqueta-relacionados.test.js ../src/content/r
 
 ## Pendiente
 
-- Probar contra el SCW real con un usuario letrado (todo lo de arriba está
-  probado solo contra la maqueta).
+- Probado contra el SCW real con un usuario letrado (consulta, históricas,
+  login); falta probar el guardado por tandas desde el panel.
 - Confirmar el comportamiento del paginador con más de 10 páginas.
 - Leer la bandeja "Entradas" de `portalpjn.pjn.gov.ar` como aviso de
-  novedades (el permiso ya está en el manifest).
-- Publicar en Chrome, Edge y Firefox: Firefox necesita `background.scripts`
+  novedades (habría que volver a agregar ese permiso de sitio al manifest).
+- Publicación en Chrome: ver `docs/PUBLICACION-CHROME.md`.
+- Publicar en Edge y Firefox: Firefox necesita `background.scripts`
   y `browser_specific_settings.gecko.id`, y no tiene
   `externally_connectable`.
 - Definir con la DGN la política de exportaciones (ZIP, EPUB) y de borrado

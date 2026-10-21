@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "default_locale": "es",
   "name": "__MSG_extensionName__",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "__MSG_extensionDescription__",
   "minimum_chrome_version": "109",
   "permissions": [
@@ -14,8 +14,7 @@
     "unlimitedStorage"
   ],
   "host_permissions": [
-    "https://scw.pjn.gov.ar/*",
-    "https://portalpjn.pjn.gov.ar/*"
+    "https://scw.pjn.gov.ar/*"
   ],
   "background": {
     "service_worker": "src/background/index.js",
@@ -47,5 +46,5 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "version_name": "0.1.11 DGN (base 1.21.1)"
+  "version_name": "0.1.12 DGN (base 1.21.1)"
 }
