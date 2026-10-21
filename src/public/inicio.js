@@ -670,7 +670,7 @@ function generarIndiceWord(tituloExpediente, ordenadas) {
   return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
     + '<head><meta charset="UTF-8"><title>Índice — ' + f.titulo + '</title>'
     + '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->'
-    + '<style>body{font-family:Georgia,serif}h1{font-size:20pt}.sub{font-size:11pt;color:#555}.aviso{font-size:9pt;color:#555}li{margin-bottom:8pt;font-size:11pt}a{color:#00008c}</style>'
+    + '<style>body{font-family:Georgia,serif}h1{font-size:20pt}.sub{font-size:11pt;color:#555}.aviso{font-size:9pt;color:#555}li{margin-bottom:8pt;font-size:11pt}a{color:#008c8c}</style>'
     + '</head><body>'
     + bloqueEncabezado(f)
     + '<ol>' + f.filas + '</ol>'
@@ -762,7 +762,7 @@ async function generarEpubCompleto(tituloExpediente, ordenadas, onProgreso) {
 
     const capXhtml = '<?xml version="1.0" encoding="UTF-8"?>'
       + '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>' + escapeHtml(tituloCorto) + '</title>'
-      + '<style>body{font-family:serif;margin:0 1em}.pagina{margin:1em 0;text-align:center}.pagina img{max-width:100%;height:auto}h2{font-size:1.15em}.meta{font-size:0.85em;color:#555;margin-bottom:0.3em}.enlace{font-size:0.8em;word-break:break-all}.enlace a{color:#00008c}.error{color:#a00}</style>'
+      + '<style>body{font-family:serif;margin:0 1em}.pagina{margin:1em 0;text-align:center}.pagina img{max-width:100%;height:auto}h2{font-size:1.15em}.meta{font-size:0.85em;color:#555;margin-bottom:0.3em}.enlace{font-size:0.8em;word-break:break-all}.enlace a{color:#008c8c}.error{color:#a00}</style>'
       + '</head><body>'
       + '<h2>' + numLabel + '. ' + escapeHtml(tituloCorto) + '</h2>'
       + (fecha ? '<div class="meta">' + escapeHtml(fecha) + '</div>' : '')

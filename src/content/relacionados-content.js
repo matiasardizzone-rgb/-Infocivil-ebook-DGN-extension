@@ -395,25 +395,25 @@
   const raiz = host.attachShadow({ mode: 'open' });
   raiz.innerHTML = `
     <style>
-      :host { all: initial; display: block; margin: 12px 0 16px; font: 14px/1.4 Arial, Helvetica, sans-serif; color: #1f2a37; }
-      .caja { border: 1px solid #b8c7da; border-radius: 6px; background: #f6f9fc; }
-      .cab { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #d6e0ec; flex-wrap: wrap; }
-      .cab b { font-size: 15px; color: #153e6f; margin-right: auto; }
-      button { font: inherit; padding: 6px 12px; border-radius: 4px; border: 1px solid #2b6cb0; background: #fff; color: #2b6cb0; cursor: pointer; }
-      button.prim { background: #2b6cb0; color: #fff; }
+      :host { all: initial; display: block; margin: 12px 0 16px; font: 14px/1.4 Arial, Helvetica, sans-serif; color: #1f3737; }
+      .caja { border: 1px solid #b8dada; border-radius: 6px; background: #f6f9fc; }
+      .cab { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #d6ecec; flex-wrap: wrap; }
+      .cab b { font-size: 15px; color: #156f6f; margin-right: auto; }
+      button { font: inherit; padding: 6px 12px; border-radius: 4px; border: 1px solid #2bb0b0; background: #fff; color: #2bb0b0; cursor: pointer; }
+      button.prim { background: #2bb0b0; color: #fff; }
       button:disabled { opacity: .5; cursor: default; }
-      .estado { padding: 8px 12px; font-size: 13px; color: #4a5568; }
+      .estado { padding: 8px 12px; font-size: 13px; color: #4a6868; }
       .estado.error { color: #b42318; }
-      .tabla { max-height: 420px; overflow: auto; border-top: 1px solid #d6e0ec; display: none; }
+      .tabla { max-height: 420px; overflow: auto; border-top: 1px solid #d6ecec; display: none; }
       table { border-collapse: collapse; width: 100%; font-size: 13px; background: #fff; }
       th { position: sticky; top: 0; background: #e8eef6; text-align: left; padding: 6px 8px; font-weight: 600; }
       td { padding: 5px 8px; border-top: 1px solid #edf1f6; vertical-align: top; }
       .et { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; white-space: nowrap; }
-      .et.no-guardado { background: #edf1f6; color: #4a5568; }
+      .et.no-guardado { background: #edf1f6; color: #4a6868; }
       .et.novedades { background: #fff3cd; color: #8a5a00; }
       .et.al-dia { background: #dcf3e3; color: #1f6b3a; }
-      .pie { display: none; gap: 8px; padding: 10px 12px; border-top: 1px solid #d6e0ec; flex-wrap: wrap; align-items: center; }
-      .pie .info { margin-left: auto; font-size: 12px; color: #4a5568; }
+      .pie { display: none; gap: 8px; padding: 10px 12px; border-top: 1px solid #d6ecec; flex-wrap: wrap; align-items: center; }
+      .pie .info { margin-left: auto; font-size: 12px; color: #4a6868; }
     </style>
     <div class="caja">
       <div class="cab">

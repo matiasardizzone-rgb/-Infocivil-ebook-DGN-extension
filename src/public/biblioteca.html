@@ -12,16 +12,16 @@
     --paper:#ece4d0;
     --paper-2:#e2d8bf;
     --paper-shadow:#c9bc9c;
-    --cover-navy:#132c54;
-    --cover-navy-deep:#0a1b34;
+    --cover-navy:#006e6e;
+    --cover-navy-deep:#004c4c;
     --gold:#8a6000;
     --gold-light:#c79a3f;
     --cord:#7c2632;
     --cord-dark:#5c1b25;
     --ink:#2b2419;
     --ink-soft:#6c5f49;
-    --accent:#1e5ba8;
-    --accent-soft:#e8f0fb;
+    --accent:#008080;
+    --accent-soft:#e3f4f4;
     --ok:#2f6b46;
     --warn:#b5451f;
   }
@@ -30,7 +30,7 @@
   body{
     font-family:'Inter',sans-serif;
     background:
-      radial-gradient(1200px 700px at 50% -10%, #1c3a68 0%, #0c1c36 55%, #060f1f 100%);
+      radial-gradient(1200px 700px at 50% -10%, #1c6868 0%, #0c3636 55%, #061f1f 100%);
     color:var(--ink);
     overflow:hidden;
     display:flex;
@@ -67,7 +67,7 @@
     box-shadow:var(--sombra);padding:16px 18px;
     display:flex;align-items:center;gap:16px;cursor:pointer;transition:box-shadow .12s;
   }
-  .lib-card:hover{box-shadow:0 4px 16px rgba(26,58,107,.18)}
+  .lib-card:hover{box-shadow:0 4px 16px rgba(26,107,107,.18)}
   .lib-card-info{flex:1;min-width:0}
   .lib-card .lc-num{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--texto-tenue)}
   .lib-card .lc-title{font-family:'Inter',sans-serif;font-size:14.5px;font-weight:700;line-height:1.35;color:var(--texto);margin:2px 0 4px}
@@ -118,7 +118,7 @@
     transition:opacity .15s,width .15s,transform .15s;width:26px;box-shadow:-2px 2px 4px rgba(0,0,0,.25);
   }
   .tab span{opacity:0;white-space:nowrap;transition:opacity .12s}
-  .tab.actual{background:linear-gradient(90deg,var(--accent),#164a8c)}
+  .tab.actual{background:linear-gradient(90deg,var(--accent),#168c8c)}
   .tab.hist{background:linear-gradient(90deg,var(--gold-light),var(--gold))}
   .tab:hover{opacity:1;width:150px;transform:translateX(2px)}
   .tab:hover span{opacity:1}
@@ -133,14 +133,14 @@
     box-shadow:0 30px 60px rgba(0,0,0,.55),0 8px 20px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.06);
     padding:0;overflow:hidden; /* al máximo: sin margen, los controles ya no flotan abajo del libro, viven en la barra superior */
   }
-  .book-header{display:flex;align-items:center;gap:12px;color:#dfe9f7;padding:2px 6px 8px 14px;flex-shrink:0;flex-wrap:wrap;row-gap:6px}
+  .book-header{display:flex;align-items:center;gap:12px;color:#dff7f7;padding:2px 6px 8px 14px;flex-shrink:0;flex-wrap:wrap;row-gap:6px}
   .escudo{font-size:20px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
   .book-header .titles{line-height:1.25}
   .book-header .t1{font-size:12.5px;font-weight:700;letter-spacing:.2px}
-  .book-header .t2{font-size:9.5px;color:#9fb6db;text-transform:uppercase;letter-spacing:.6px}
+  .book-header .t2{font-size:9.5px;color:#9fdbdb;text-transform:uppercase;letter-spacing:.6px}
   .book-header .expte{margin-left:auto;text-align:right;font-family:'IBM Plex Mono',monospace;cursor:pointer}
   .book-header .expte .n{font-size:12px;font-weight:600;color:#fff}
-  .book-header .expte .l{font-size:8.5px;color:#8fa8cf;text-transform:uppercase;letter-spacing:.5px}
+  .book-header .expte .l{font-size:8.5px;color:#8fcfcf;text-transform:uppercase;letter-spacing:.5px}
 
   .stage{position:relative;flex:1;margin:0;border-radius:0;cursor:grab}
   .stage.dragging{cursor:grabbing}
@@ -316,8 +316,8 @@
   .busq-estado .aviso{color:var(--warn)}
   .busq-lista{overflow-y:auto;flex:1;padding:6px 0;border-top:1px solid var(--paper-shadow)}
   .busq-item{padding:9px 16px;cursor:pointer;border-left:3px solid transparent;font-size:11.5px;line-height:1.45;color:var(--ink-soft)}
-  .busq-item:hover{background:rgba(30,91,168,.06)}
-  .busq-item.on{background:rgba(30,91,168,.09);border-left-color:var(--accent)}
+  .busq-item:hover{background:rgba(30,168,168,.06)}
+  .busq-item.on{background:rgba(30,168,168,.09);border-left-color:var(--accent)}
   .busq-ref{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--cover-navy);font-weight:600;margin-bottom:2px;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .busq-frag b{background:#ffe48a;color:var(--ink);font-weight:600;border-radius:2px;padding:0 1px}
@@ -341,8 +341,8 @@
 
   .index-list{overflow-y:auto;flex:1;padding:6px 0;border-top:1px solid var(--paper-shadow)}
   .index-item{display:flex;gap:10px;align-items:flex-start;padding:9px 16px;cursor:pointer;border-left:3px solid transparent;font-size:11.5px;color:var(--ink-soft);line-height:1.4}
-  .index-item:hover{background:rgba(30,91,168,.06)}
-  .index-item.on{background:rgba(30,91,168,.09);border-left-color:var(--accent)}
+  .index-item:hover{background:rgba(30,168,168,.06)}
+  .index-item.on{background:rgba(30,168,168,.09);border-left-color:var(--accent)}
   .index-item.hist.on{background:#fff3d1;border-left-color:var(--gold)}
   .index-item.filtrado{display:none}
   .index-num{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;color:var(--ink-soft);min-width:24px;flex-shrink:0}
@@ -365,7 +365,7 @@
   .flag::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.85);flex-shrink:0}
   .flag-btn-wrap{position:relative}
   #btnFlag.on{background:rgba(255,190,80,.28)!important;border-color:rgba(255,190,80,.5)!important}
-  #btnInvertir.on{background:rgba(80,150,255,.22)!important;border-color:rgba(80,150,255,.45)!important}
+  #btnInvertir.on{background:rgba(80,255,255,.22)!important;border-color:rgba(80,255,255,.45)!important}
   /* Abre hacia ABAJO ahora (top, no bottom): el botón "Marcar" vive en la
      barra superior desde que los controles se movieron ahí — antes,
      colgando del borde inferior del libro, abría hacia arriba. */
@@ -420,7 +420,7 @@
   .respaldo-estado.error{background:#fbe9e4;color:var(--warn)}
   .dlg-respaldo{border:none;border-radius:12px;padding:22px 24px;max-width:520px;width:calc(100% - 32px);
     box-shadow:0 18px 50px rgba(0,0,0,.28);font-family:'Inter',sans-serif;color:var(--ink)}
-  .dlg-respaldo::backdrop{background:rgba(10,27,52,.45)}
+  .dlg-respaldo::backdrop{background:rgba(10,52,52,.45)}
   .dlg-respaldo h2{font-family:'Source Serif 4',serif;font-size:19px;margin-bottom:8px}
   .dlg-respaldo p{font-size:13px;line-height:1.5;color:var(--ink-soft);margin-bottom:14px}
   .dlg-opcion{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;padding:10px 12px;
@@ -450,7 +450,7 @@
      y copiar. cursor:text además avisa visualmente que se puede. */
   .textLayer{position:absolute;inset:0;overflow:hidden;line-height:1;text-align:initial;user-select:text}
   .textLayer span,.textLayer br{color:transparent;position:absolute;white-space:pre;cursor:text;transform-origin:0% 0%}
-  .textLayer ::selection{background:rgba(30,91,168,.35)}
+  .textLayer ::selection{background:rgba(30,168,168,.35)}
 
   /* Membrete compacto para el visor real (PDFs de verdad, no la maqueta) */
   /* Ahora afuera de la hoja (una sola cabecera/pie para el par de páginas,
@@ -469,8 +469,8 @@
         <path d="M8 21h8"/>
       </svg>
       <div>
-        <div class="barra-titulo">Infocivil Ebook <span class="version-ext" data-version-ext title="Versión instalada de la extensión"></span></div>
-        <div class="barra-sub">Poder Judicial de la Nación · Cámara Civil</div>
+        <div class="barra-titulo">Infocivil Ebook DGN <span class="version-ext" data-version-ext title="Versión instalada de la extensión"></span></div>
+        <div class="barra-sub">Defensoría General de la Nación</div>
       </div>
       <div class="barra-acciones">
         <a class="barra-link" href="inicio.html">Nueva consulta</a>
@@ -539,8 +539,8 @@
     <div class="book-header">
       <div class="escudo">⚖️</div>
       <div class="titles">
-        <div class="t1">Poder Judicial de la Nación</div>
-        <div class="t2">Cámara Nacional de Apelaciones en lo Civil</div>
+        <div class="t1">Infocivil Ebook DGN</div>
+        <div class="t2">Defensoría General de la Nación</div>
       </div>
       <div class="page-badge" id="counter">fs. — / —</div>
 

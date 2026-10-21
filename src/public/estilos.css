@@ -3,16 +3,16 @@
    oscuro con franja de acento), pensada para uso judicial diario. */
 
 :root {
-  --azul-oscuro: #1a3a6b;
-  --azul: #1e5ba8;
-  --azul-claro: #2e80d8;
-  --azul-palido: #e8f0fb;
-  --borde: #c8d8ec;
-  --borde-suave: #dbe6f2;
+  --azul-oscuro: #006e6e;
+  --azul: #008080;
+  --azul-claro: #008f8f;
+  --azul-palido: #e3f4f4;
+  --borde: #c8ecec;
+  --borde-suave: #dbf2f2;
   --fondo: #f0f4f8;
-  --texto: #1c2b3f;
-  --texto-suave: #3a5070;
-  --texto-tenue: #6b7f99;
+  --texto: #1c3f3f;
+  --texto-suave: #3a7070;
+  --texto-tenue: #6b9999;
   --blanco: #fff;
   --error: #b3261e;
   --error-fondo: #fdecea;
@@ -21,7 +21,7 @@
   --aviso-borde: #e8d080;
   --aviso-texto: #6b5000;
   --radio: 8px;
-  --sombra: 0 1px 3px rgba(26, 58, 107, .12), 0 4px 12px rgba(26, 58, 107, .06);
+  --sombra: 0 1px 3px rgba(26,107,107, .12), 0 4px 12px rgba(26,107,107, .06);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,21 +48,21 @@ body {
   align-items: center;
   gap: 12px;
 }
-.escudo { width: 28px; height: 28px; flex-shrink: 0; color: #a8c4e8; }
+.escudo { width: 28px; height: 28px; flex-shrink: 0; color: #a8e8e8; }
 .barra-titulo { font-size: 17px; font-weight: 600; line-height: 1.2; }
 /* Versión instalada, leída del manifest (data-version-ext) — para que el
    operador pueda decir "tengo la 1.20.0" cuando reporta algo. */
 .version-ext {
-  font-size: 10.5px; font-weight: 500; color: #a8c4e8; margin-left: 6px;
+  font-size: 10.5px; font-weight: 500; color: #a8e8e8; margin-left: 6px;
   font-family: 'IBM Plex Mono', monospace; letter-spacing: 0; vertical-align: 2px;
 }
 .barra-sub {
-  font-size: 10px; color: #a8c4e8;
+  font-size: 10px; color: #a8e8e8;
   text-transform: uppercase; letter-spacing: .5px;
 }
 .barra-acciones { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 .barra-link {
-  color: #cfe0f6; text-decoration: none; font-size: 13px;
+  color: #cff6f6; text-decoration: none; font-size: 13px;
   padding: 6px 10px; border-radius: 6px;
 }
 .barra-link:hover { background: rgba(255,255,255,.1); color: #fff; }
@@ -107,7 +107,7 @@ body {
 .control:focus {
   outline: none;
   border-color: var(--azul-claro);
-  box-shadow: 0 0 0 3px rgba(46,128,216,.18);
+  box-shadow: 0 0 0 3px rgba(46,216,216,.18);
 }
 select.control { margin-bottom: 16px; cursor: pointer; }
 .fila-numero { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }

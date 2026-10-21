@@ -18,7 +18,7 @@ instalarCaptura('biblioteca');
 
 const FLAG_COLORS = [
   { id: 'rojo', hex: '#c0392b' }, { id: 'ambar', hex: '#c78a1e' }, { id: 'verde', hex: '#2f7d4f' },
-  { id: 'azul', hex: '#1e5ba8' }, { id: 'violeta', hex: '#6b4ba8' },
+  { id: 'azul', hex: '#008080' }, { id: 'violeta', hex: '#6b4ba8' },
 ];
 
 let expActivo = null;   // registro de db.js del expediente abierto
@@ -579,7 +579,7 @@ function avisoApertura(texto) {
   if (!el) {
     el = document.createElement('div');
     el.id = 'avisoApertura';
-    el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;background:#1a3a6b;color:#fff;' +
+    el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;background:#006e6e;color:#fff;' +
       'padding:10px 18px;border-radius:8px;font:13px Segoe UI,Arial,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.25)';
     document.body.appendChild(el);
   }
@@ -1419,14 +1419,14 @@ function generarIndiceZip(exp, filas) {
   return `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
 <title>${escZip(exp.numero || exp.cid)}</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f0f4f8;color:#1a2a3a;margin:0;padding:0}
-header{background:#1a3a6b;color:#fff;padding:18px 24px}
+body{font-family:Arial,sans-serif;background:#f0f4f8;color:#1a3a3a;margin:0;padding:0}
+header{background:#006e6e;color:#fff;padding:18px 24px}
 header h1{font-size:16px;margin:0 0 4px}
-header p{font-size:12px;color:#a8c4e8;margin:0}
+header p{font-size:12px;color:#a8e8e8;margin:0}
 table{width:100%;border-collapse:collapse;margin:16px auto;max-width:900px}
-td{padding:9px 12px;border-bottom:1px solid #dbe6f2;font-size:13px}
+td{padding:9px 12px;border-bottom:1px solid #dbf2f2;font-size:13px}
 tr.hist{background:#fffbf0}
-a{color:#1e5ba8;text-decoration:none}
+a{color:#008080;text-decoration:none}
 a:hover{text-decoration:underline}
 </style></head><body>
 <header><h1>⚖️ ${escZip(exp.numero || exp.cid)}</h1><p>${escZip(exp.caratula || '')} · ${filas.length} actuaciones</p></header>
