@@ -312,7 +312,7 @@ async function esperarHistoricas(cid, desde, timeoutMs) {
 // leídas para ese cid, no navega. Expedientes de 2019 en adelante no tienen.
 export async function asegurarHistoricas(tabId, cid, anio, { forzar = false, avisar = () => {} } = {}) {
   const clave = 'pjnHistoricas_' + cid;
-  let historicas = null, vuelta;
+  let historicas = null, vuelta, metodo = null;
   if (anio && Number(anio) >= ANIO_SIN_HISTORICAS) {
     historicas = [];
     vuelta = await esperarEstado(tabId, e => e.esExpediente, 30000, 'confirmando expediente');
@@ -323,7 +323,14 @@ export async function asegurarHistoricas(tabId, cid, anio, { forzar = false, avi
     avisar('Leyendo actuaciones históricas…');
     const desde = Date.now();
     await chrome.storage.local.remove([clave, 'pjnHistoricasResult', 'pjnHistoricasUltimo']);
-    await chrome.tabs.update(tabId, { url: urlHistoricas(cid) });
+    // Por el botón del expediente, como el usuario (ver 'irAHistoricas' en
+    // relacionados-content.js). La dirección directa queda de respaldo.
+    const boton = await pedir(tabId, { action: 'irAHistoricas' });
+    metodo = boton && boton.ok ? 'boton' : 'url';
+    if (metodo === 'url') {
+      console.warn('[Infocivil consulta] Sin botón de históricas (' + ((boton && boton.error) || 'sin respuesta') + '): se abre la dirección.');
+      await chrome.tabs.update(tabId, { url: urlHistoricas(cid) });
+    }
     const hist = await esperarHistoricas(cid, desde, 60000);
     if (hist.ok) historicas = hist.archivos;
     else console.warn('[Infocivil consulta] Históricas no leídas:', hist.error);
@@ -336,7 +343,7 @@ export async function asegurarHistoricas(tabId, cid, anio, { forzar = false, avi
   if (!(anio && Number(anio) >= ANIO_SIN_HISTORICAS)) {
     try {
       Promise.resolve(registrar(historicas && historicas.length ? 'info' : 'aviso', 'background', 'Históricas del expediente',
-        { anio, cidPedido: cid, cidExpediente: cidActual, leidas: historicas ? historicas.length : null })).catch(() => {});
+        { anio, metodo, cidPedido: cid, cidExpediente: cidActual, leidas: historicas ? historicas.length : null })).catch(() => {});
     } catch (_) { /* el diagnóstico nunca corta la lectura */ }
   }
   if (historicas) {

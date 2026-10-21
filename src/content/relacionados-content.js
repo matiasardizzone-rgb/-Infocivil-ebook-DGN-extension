@@ -345,6 +345,20 @@
       sendResponse({ ok: true, esLista: esLista(), filas: esLista() ? leerFilasPagina().length : 0, pagina: esLista() ? paginaActual() : null, url: location.href });
       return false;
     }
+    // Entra a "Actuaciones históricas" con el botón del expediente, como el
+    // usuario. Con sesión iniciada, abrir actuacionesHistoricas.seam?cid=…
+    // escribiendo la dirección muestra la página casi vacía (visto contra
+    // el SCW real: 5 filas sin documentos; por el botón, 15 filas y 2
+    // documentos, mismo cid).
+    if (msg.action === 'irAHistoricas') {
+      const candidatos = Array.from(document.querySelectorAll('a, button, input[type=submit], input[type=button]'))
+        .filter(e => /hist[oó]ric/i.test(((e.value || '') + ' ' + (e.textContent || '')).trim()));
+      const el = candidatos.find(e => e.getAttribute('onclick') || (e.getAttribute('href') || '').length > 1) || candidatos[0];
+      if (!el) { sendResponse({ ok: false, error: 'No se encontró el botón de actuaciones históricas.' }); return false; }
+      sendResponse({ ok: true, texto: textoDe(el).slice(0, 60) });
+      setTimeout(() => clicEnPagina(el), 100);
+      return false;
+    }
     if (msg.action === 'relacionadosClaveActual') {
       sendResponse({ ok: true, clave: claveExpedienteActual() });
       return false;
