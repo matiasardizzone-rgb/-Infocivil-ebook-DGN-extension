@@ -1,3 +1,4 @@
+import { registrar } from '../lib/registro.js';
 // consulta.js — Consulta de un expediente desde la pantalla de inicio de la
 // extensión (src/public/inicio.html), sin que el operador pase por el SCW.
 //
@@ -332,6 +333,12 @@ export async function asegurarHistoricas(tabId, cid, anio, { forzar = false, avi
     if (vuelta.vencido) throw new Error('No se pudo volver al expediente después de leer las históricas.');
   }
   const cidActual = (vuelta && vuelta.cid) || cid;
+  if (!(anio && Number(anio) >= ANIO_SIN_HISTORICAS)) {
+    try {
+      Promise.resolve(registrar(historicas && historicas.length ? 'info' : 'aviso', 'background', 'Históricas del expediente',
+        { anio, cidPedido: cid, cidExpediente: cidActual, leidas: historicas ? historicas.length : null })).catch(() => {});
+    } catch (_) { /* el diagnóstico nunca corta la lectura */ }
+  }
   if (historicas) {
     await chrome.storage.local.set({ ['pjnHistoricas_' + cidActual]: historicas, [clave]: historicas });
     if (historicas.length) avisar('Históricas leídas: ' + historicas.length + '.');

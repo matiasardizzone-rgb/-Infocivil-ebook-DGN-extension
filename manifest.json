@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "default_locale": "es",
   "name": "__MSG_extensionName__",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "__MSG_extensionDescription__",
   "minimum_chrome_version": "109",
   "permissions": [
@@ -47,5 +47,5 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "version_name": "0.1.7 DGN (base 1.21.1)"
+  "version_name": "0.1.8 DGN (base 1.21.1)"
 }

@@ -4,7 +4,7 @@
 const almacen = {};
 let urlActual = 'https://scw.pjn.gov.ar/scw/expediente.seam?cid=358872';
 globalThis.chrome = {
-  runtime: {},
+  runtime: { getManifest: () => ({ version: 'prueba' }) },
   storage: { local: {
     get: async ks => Object.fromEntries([].concat(ks).filter(k => k in almacen).map(k => [k, almacen[k]])),
     set: async o => Object.assign(almacen, o),

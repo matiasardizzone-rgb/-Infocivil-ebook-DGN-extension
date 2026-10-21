@@ -402,9 +402,14 @@
           console.log('[PJN] Tabla de históricas lista con', filas.length, 'filas');
           clearInterval(id); resolve(); return;
         }
+        // Variante DGN: la pestaña corre en segundo plano y la tabla puede
+        // tardar más que en la consulta pública. Con 6 s se concluía "no
+        // tiene" antes de que apareciera (visto contra el SCW real: a mano
+        // traía 2, en segundo plano 0). Ahora: 5 s si la tabla ya tiene filas
+        // sin documentos; 20 s si todavía no apareció ninguna fila.
         if (/car[aá]tula/i.test(texto)) {
           if (paginaCargadaDesde === null) paginaCargadaDesde = Date.now();
-          else if (Date.now() - paginaCargadaDesde > 6000) {
+          else if (Date.now() - paginaCargadaDesde > (filas.length ? 5000 : 20000)) {
             console.log('[PJN] Página de históricas cargada sin documentos: no tiene.');
             clearInterval(id); resolve(); return;
           }
@@ -1094,8 +1099,20 @@
     (async () => {
       try {
         console.log('[PJN] Auto-scraping históricas...');
+        const t0 = Date.now();
 
         const archivos = await scrapeHistoricasDOMDirecto();
+        // Diagnóstico (queda en la pantalla de Diagnóstico de la extensión).
+        try {
+          const filas = Array.from(document.querySelectorAll('tbody tr'));
+          registrarIC(archivos.length ? 'info' : 'aviso', 'Históricas leídas en el SCW', {
+            documentos: archivos.length, filas: filas.length,
+            filasConBotones: filas.filter(f => f.querySelector('a, button')).length,
+            linksViewer: document.querySelectorAll("tbody a[href*='viewer']").length,
+            segundos: Math.round((Date.now() - t0) / 1000),
+            visible: document.visibilityState, cid: (location.href.match(/cid=(\d+)/) || [])[1] || null,
+          });
+        } catch (_) {}
         const archivosHist = archivos.map(a => ({ ...a, esHistorica: true }));
 
         // Obtener cid de la URL — en históricas puede no estar como parámetro
