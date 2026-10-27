@@ -859,6 +859,32 @@ document.querySelector('[data-formato="unificado-indice"]').addEventListener('cl
     (r.errores ? ', ' + r.errores + ' con página de error' : '') + '). Se abrió el diálogo para guardarlo.', 'ok');
 }));
 
+// ─── PDF de actuaciones seleccionadas (módulo aparte: seleccion.html) ───
+// Desde Mis expedientes basta el cid; de una consulta en vivo la lista
+// viaja por chrome.storage.local (sin blobs) y el módulo baja del SCW
+// solo las actuaciones que se elijan.
+$('btnSeleccion').addEventListener('click', async () => {
+  if (!exp) return;
+  const base = chrome.runtime.getURL('src/public/seleccion.html');
+  if (exp.desdeGuardado) {
+    chrome.tabs.create({ url: base + '?cid=' + encodeURIComponent(exp.cid) });
+    return;
+  }
+  await chrome.storage.local.set({ seleccionDatos: {
+    cid: exp.cid,
+    numero: exp.nombre,
+    titulo: exp.caratula || exp.tituloExpediente || '',
+    historicasFaltantes: !!exp.historicasFaltantes,
+    paginacionIncompleta: !!exp.paginacionIncompleta,
+    actuaciones: actuacionesDeExp().map(a => ({
+      titulo: a.titulo, fecha: a.fecha, tipo: a.tipo, descripcion: a.descripcion,
+      esHistorica: !!a.esHistorica, extension: a.extension,
+      urlPdf: a.urlPdf, url: a.url, urlPublica: a.urlPublica,
+    })),
+  } });
+  chrome.tabs.create({ url: base + '?origen=consulta' });
+});
+
 // ─── PDF unificado (simple): sin portada, índice, pie ni enlaces ────────
 // Funciona igual en vivo (baja del SCW) o desde Mis expedientes (usa lo
 // guardado). Para remitir el expediente a otra jurisdicción.

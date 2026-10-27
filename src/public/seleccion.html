@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infocivil Ebook DGN — PDF de actuaciones seleccionadas</title>
+<link rel="stylesheet" href="estilos.css">
+<link rel="icon" href="../../icons/icon48.png">
+<style>
+  .sel-cuerpo { max-width: 1040px; margin: 24px auto 60px; padding: 0 16px; }
+  .sel-filtros { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; margin: 16px 0 10px; }
+  .sel-filtros label { font-size: 12px; color: var(--texto-suave); display: flex; flex-direction: column; gap: 4px; }
+  .sel-filtros .control { margin: 0; min-width: 0; }
+  .sel-buscar { flex: 1 1 260px; }
+  .sel-buscar .control { width: 100%; }
+  .sel-tipos { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 12px; }
+  .sel-chip { border: 1px solid var(--borde); background: var(--blanco); color: var(--texto-suave); border-radius: 14px;
+    padding: 3px 10px; font-size: 12px; cursor: pointer; }
+  .sel-chip[aria-pressed="true"] { background: var(--azul-palido); border-color: var(--azul-claro); color: var(--azul-oscuro); font-weight: 600; }
+  .sel-barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .sel-barra .sel-cuenta { margin-left: auto; font-size: 13px; color: var(--texto-suave); }
+  .sel-tabla { width: 100%; border-collapse: collapse; background: var(--blanco); border: 1px solid var(--borde);
+    border-radius: var(--radio); overflow: hidden; font-size: 13px; }
+  .sel-tabla th { text-align: left; background: var(--azul-palido); color: var(--azul-oscuro); font-weight: 600; padding: 7px 8px;
+    border-bottom: 1px solid var(--borde); position: sticky; top: 0; }
+  .sel-tabla td { padding: 6px 8px; border-bottom: 1px solid var(--borde-suave); vertical-align: top; }
+  .sel-tabla tr.marcada td { background: #f3f8ff; }
+  .sel-tabla tr.oculta { display: none; }
+  .sel-tabla td.num { color: var(--texto-tenue); white-space: nowrap; text-align: right; width: 42px; }
+  .sel-tabla td.fecha { white-space: nowrap; width: 86px; }
+  .sel-tabla td.tipo { width: 190px; }
+  .sel-tabla td.check { width: 30px; text-align: center; }
+  .sel-tabla td.check input { width: 16px; height: 16px; cursor: pointer; }
+  .sel-tabla tbody tr { cursor: pointer; }
+  .sel-marca { font-size: 11px; padding: 1px 6px; border-radius: 8px; margin-left: 6px; white-space: nowrap; }
+  .sel-marca--hist { background: #f6ecd2; color: #6b5000; }
+  .sel-marca--flag { background: #fde8e8; color: #9b1c1c; }
+  .sel-pie { position: sticky; bottom: 0; background: var(--fondo); padding: 12px 0 4px; margin-top: 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .sel-ayuda { font-size: 12px; color: var(--texto-tenue); }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-contenido">
+    <svg class="escudo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+      <path d="M12 3v18M7 7h10M5 7l-2.5 6a3.5 3.5 0 0 0 5 0L5 7zM19 7l-2.5 6a3.5 3.5 0 0 0 5 0L19 7z"/>
+      <path d="M8 21h8"/>
+    </svg>
+    <div>
+      <div class="barra-titulo">Infocivil Ebook DGN <span class="version-ext" data-version-ext></span></div>
+      <div class="barra-sub">Defensoría General de la Nación</div>
+    </div>
+    <div class="barra-acciones">
+      <a class="barra-link" href="biblioteca.html">Mis expedientes</a>
+    </div>
+  </div>
+</header>
+
+<main class="sel-cuerpo">
+  <div class="exp-cabecera">
+    <div class="exp-id" id="expId"></div>
+    <div class="exp-caratula" id="expCaratula">Cargando actuaciones…</div>
+    <div class="exp-meta">PDF de actuaciones seleccionadas, con índice hipervinculado interno (sin enlaces al SCW). Cada actuación conserva su número en el expediente completo.</div>
+  </div>
+
+  <div id="avisos"></div>
+
+  <div class="sel-filtros">
+    <label class="sel-buscar">Buscar en tipo o descripción
+      <input id="fTexto" class="control" type="search" placeholder="Ej.: pericia, sentencia, traslado">
+    </label>
+    <label>Desde <input id="fDesde" class="control" type="date"></label>
+    <label>Hasta <input id="fHasta" class="control" type="date"></label>
+    <label style="flex-direction:row;align-items:center;gap:6px;padding-bottom:8px">
+      <input id="fBanderitas" type="checkbox"> Solo con banderitas
+    </label>
+  </div>
+  <div class="sel-tipos" id="fTipos"></div>
+
+  <div class="sel-barra">
+    <button class="boton-secundario" id="btnTodas" type="button">Marcar visibles</button>
+    <button class="boton-secundario" id="btnNinguna" type="button">Desmarcar visibles</button>
+    <button class="boton-secundario" id="btnInvertir" type="button">Invertir visibles</button>
+    <span class="sel-ayuda">Shift + clic marca un rango.</span>
+    <span class="sel-cuenta" id="cuenta"></span>
+  </div>
+
+  <table class="sel-tabla">
+    <thead><tr><th></th><th>N.º</th><th>Fecha</th><th>Tipo</th><th>Descripción</th></tr></thead>
+    <tbody id="filas"></tbody>
+  </table>
+
+  <div class="sel-pie">
+    <button class="boton-primario" id="btnGenerar" type="button" disabled>Generar PDF con índice</button>
+    <div class="estado" id="estado"></div>
+  </div>
+</main>
+
+<script type="module" src="seleccion.js"></script>
+</body>
+</html>

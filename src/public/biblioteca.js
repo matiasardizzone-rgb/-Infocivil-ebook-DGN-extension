@@ -272,6 +272,13 @@ document.getElementById('btnNuevaConsulta').addEventListener('click', async () =
   // en cada "Volver" y se iban apilando.
   location.href = chrome.runtime.getURL('src/public/inicio.html') + '?resultados=' + encodeURIComponent(expActivo.cid);
 });
+// Módulo «PDF de actuaciones seleccionadas» (seleccion.html), en otra
+// pestaña para no perder la hoja que se está leyendo. Llega con las
+// actuaciones que tienen banderitas ya tildadas.
+document.getElementById('btnSeleccion').addEventListener('click', () => {
+  if (!expActivo) return;
+  chrome.tabs.create({ url: chrome.runtime.getURL('src/public/seleccion.html') + '?cid=' + encodeURIComponent(expActivo.cid) + '&banderitas=1' });
+});
 document.getElementById('zoomSel').addEventListener('change', async function () {
   zoomManual = parseFloat(this.value);
   pages.forEach(p => { p.canvas = null; });
